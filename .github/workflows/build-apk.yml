@@ -38,10 +38,107 @@ jobs:
       - name: Create Android project
         run: npx cap add android
 
+      # ==========================================
+      # FIREBASE
+      # ==========================================
+
+      - name: Create google-services.json
+        run: |
+          cat > android/app/google-services.json <<'EOF'
+          {
+            "project_info": {
+              "project_number": "702721574838",
+              "project_id": "mindreset-efc6d",
+              "storage_bucket": "mindreset-efc6d.firebasestorage.app"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:702721574838:android:bb1ce645a07337be82a317",
+                  "android_client_info": {
+                    "package_name": "com.mindreset.app"
+                  }
+                },
+                "oauth_client": [
+                  {
+                    "client_id": "702721574838-5r8trvulppps8drlps3ggqog5e69t3ts.apps.googleusercontent.com",
+                    "client_type": 3
+                  }
+                ],
+                "api_key": [
+                  {
+                    "current_key": "AIzaSyBN4sPdVMAcAA7YyhCcUTc_lFyKTCq_E8U"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": [
+                      {
+                        "client_id": "702721574838-5r8trvulppps8drlps3ggqog5e69t3ts.apps.googleusercontent.com",
+                        "client_type": 3
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
+
+      - name: Configure Google Services
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path("android/build.gradle")
+          app = Path("android/app/build.gradle")
+
+          root_text = root.read_text()
+          app_text = app.read_text()
+
+          # Add Google Services classpath to the root Gradle file
+          if "com.google.gms:google-services" not in root_text:
+              marker = "dependencies {"
+              if marker in root_text:
+                  root_text = root_text.replace(
+                      marker,
+                      marker + "\n        classpath 'com.google.gms:google-services:4.4.2'",
+                      1
+                  )
+              else:
+                  root_text += """
+                  
+                  buildscript {
+                      dependencies {
+                          classpath 'com.google.gms:google-services:4.4.2'
+                      }
+                  }
+                  """
+
+          # Apply Google Services plugin to the Android app
+          if "com.google.gms.google-services" not in app_text:
+              app_text += """
+
+              apply plugin: 'com.google.gms.google-services'
+              """
+
+          root.write_text(root_text)
+          app.write_text(app_text)
+          PY
+
+      # ==========================================
+      # ANDROID
+      # ==========================================
+
       - name: Configure Android API 36
         run: |
           sed -i 's/compileSdkVersion = [0-9]*/compileSdkVersion = 36/' android/variables.gradle
           sed -i 's/targetSdkVersion = [0-9]*/targetSdkVersion = 36/' android/variables.gradle
+
+      # ==========================================
+      # USAGE ACCESS
+      # ==========================================
 
       - name: Copy native Usage Access plugin
         run: |
@@ -71,6 +168,10 @@ jobs:
           }
           EOF
 
+      # ==========================================
+      # ICONS
+      # ==========================================
+
       - name: Generate app icons
         run: |
           npx @capacitor/assets generate \
@@ -78,23 +179,48 @@ jobs:
             --iconBackgroundColor "#1E1F44" \
             --iconBackgroundColorDark "#1E1F44"
 
+      # ==========================================
+      # CAPACITOR
+      # ==========================================
+
       - name: Sync Capacitor
         run: npx cap sync android
+
+      # ==========================================
+      # VERIFICATIONS
+      # ==========================================
+
+      - name: Verify Firebase configuration
+        run: |
+          echo "Checking Firebase configuration..."
+          ls -la android/app/google-services.json
+          echo "Checking Firebase project..."
+          grep -E '"project_id"|"package_name"|"mobilesdk_app_id"' android/app/google-services.json
 
       - name: Verify native plugin
         run: |
           echo "Checking native plugin..."
           ls -la android/app/src/main/java/com/mindreset/app/
+
           echo "Checking package..."
           head -n 5 android/app/src/main/java/com/mindreset/app/MindResetUsagePlugin.java
+
           echo "Checking permission..."
           grep PACKAGE_USAGE_STATS android/app/src/main/AndroidManifest.xml
+
+      # ==========================================
+      # BUILD
+      # ==========================================
 
       - name: Build APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
+
+      # ==========================================
+      # UPLOAD
+      # ==========================================
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
