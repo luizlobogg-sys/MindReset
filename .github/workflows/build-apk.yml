@@ -5,16 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: read
-
-concurrency:
-  group: mindreset-apk-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,62 +19,73 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Setup Node 22
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '22'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android 36 SDK
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Install Android SDK 36
+        run: |
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
-      - name: Install npm dependencies
+      - name: Install dependencies
         run: npm install
 
       - name: Create Android project
         run: npx cap add android
 
-      - name: Set Google Play API target
+      - name: Configure Android API 36
         run: |
-          sed -i 's/compileSdkVersion = [0-9][0-9]*/compileSdkVersion = 36/' android/variables.gradle
-          sed -i 's/targetSdkVersion = [0-9][0-9]*/targetSdkVersion = 36/' android/variables.gradle
+          sed -i 's/compileSdkVersion = [0-9]*/compileSdkVersion = 36/' android/variables.gradle
+          sed -i 's/targetSdkVersion = [0-9]*/targetSdkVersion = 36/' android/variables.gradle
 
-      - name: Install MindReset native Android plugin
+      - name: Copy native Usage Access plugin
         run: |
-          mkdir -p android/app/src/main/java/com/mindreset/app/plugins
-          cp native/MindResetUsagePlugin.java android/app/src/main/java/com/mindreset/app/plugins/MindResetUsagePlugin.java
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('android/app/src/main/java/com/mindreset/app/MainActivity.java')
-          s=p.read_text()
-          s=s.replace('package com.mindreset.app;\n', 'package com.mindreset.app;\n\nimport android.os.Bundle;\nimport com.mindreset.app.plugins.MindResetUsagePlugin;\n')
-          if 'registerPlugin(MindResetUsagePlugin.class)' not in s:
-              s=s.replace('public class MainActivity extends BridgeActivity {', 'public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(Bundle savedInstanceState) {\n        registerPlugin(MindResetUsagePlugin.class);\n        super.onCreate(savedInstanceState);\n    }')
-          p.write_text(s)
-          PY
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('android/app/src/main/AndroidManifest.xml')
-          s=p.read_text()
-          if 'android.permission.PACKAGE_USAGE_STATS' not in s:
-              s=s.replace('<manifest ', '<manifest ')
-              s=s.replace('>\n    <application', '>\n    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />\n    <application', 1)
-          p.write_text(s)
-          PY
+          mkdir -p android/app/src/main/java/com/mindreset/app
+          cp native/MindResetUsagePlugin.java android/app/src/main/java/com/mindreset/app/MindResetUsagePlugin.java
 
-      - name: Generate app icon
-        run: npx @capacitor/assets generate --android --iconBackgroundColor "#1E1F44" --iconBackgroundColorDark "#1E1F44"
+      - name: Add Usage Access permission
+        run: |
+          sed -i '/<application/i\    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />' android/app/src/main/AndroidManifest.xml
+
+      - name: Register native plugin
+        run: |
+          cat > android/app/src/main/java/com/mindreset/app/MainActivity.java <<'EOF'
+          package com.mindreset.app;
+
+          import android.os.Bundle;
+
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  registerPlugin(MindResetUsagePlugin.class);
+              }
+          }
+          EOF
+
+      - name: Generate app icons
+        run: |
+          npx @capacitor/assets generate \
+            --android \
+            --iconBackgroundColor "#1E1F44" \
+            --iconBackgroundColorDark "#1E1F44"
 
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Build debug APK
-        working-directory: android
-        run: ./gradlew assembleDebug
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
-      - name: Upload debug APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: MindReset-APK
