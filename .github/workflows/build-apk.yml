@@ -2,7 +2,8 @@ name: Build MindReset APK
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -19,7 +20,7 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Setup Node
+      - name: Setup Node 22
         uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -46,6 +47,7 @@ jobs:
         run: |
           mkdir -p android/app/src/main/java/com/mindreset/app
           cp native/MindResetUsagePlugin.java android/app/src/main/java/com/mindreset/app/MindResetUsagePlugin.java
+          sed -i 's/^package .*/package com.mindreset.app;/' android/app/src/main/java/com/mindreset/app/MindResetUsagePlugin.java
 
       - name: Add Usage Access permission
         run: |
@@ -57,14 +59,14 @@ jobs:
           package com.mindreset.app;
 
           import android.os.Bundle;
-
           import com.getcapacitor.BridgeActivity;
 
           public class MainActivity extends BridgeActivity {
+
               @Override
               public void onCreate(Bundle savedInstanceState) {
-                  super.onCreate(savedInstanceState);
                   registerPlugin(MindResetUsagePlugin.class);
+                  super.onCreate(savedInstanceState);
               }
           }
           EOF
@@ -78,6 +80,15 @@ jobs:
 
       - name: Sync Capacitor
         run: npx cap sync android
+
+      - name: Verify native plugin
+        run: |
+          echo "Checking native plugin..."
+          ls -la android/app/src/main/java/com/mindreset/app/
+          echo "Checking package..."
+          head -n 5 android/app/src/main/java/com/mindreset/app/MindResetUsagePlugin.java
+          echo "Checking permission..."
+          grep PACKAGE_USAGE_STATS android/app/src/main/AndroidManifest.xml
 
       - name: Build APK
         run: |
