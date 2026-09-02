@@ -1,61 +1,29 @@
-# MindReset V3 — APK automático pelo GitHub Actions
+# MindReset
 
-Esta versão foi estruturada para você editar o código pelo celular e deixar o GitHub compilar o APK automaticamente.
+MindReset is a digital wellbeing Android app focused on healthier technology habits.
 
-## Fluxo
+## Release features
+- Portuguese, English and Spanish UI
+- Digital wellbeing dashboard and score
+- Android Usage Access integration for real device screen-time data
+- Mood tracker stored locally
+- Focus timer and session counter
+- Seven-day digital reset challenges
+- Local-first data handling; no account required
+- Privacy policy included in `www/privacy.html`
+- Automatic Android build through GitHub Actions
+- Debug APK and release AAB workflows
 
-1. Você altera `www/index.html`.
-2. Envia/commita a alteração para a branch `main`.
-3. O GitHub Actions detecta o `push` automaticamente.
-4. O projeto Android é criado com Capacitor.
-5. O APK Debug é compilado.
-6. O arquivo `MindReset.apk` aparece como artefato da execução.
+## GitHub Actions
+Every push to `main` runs the Android build. The workflow also supports manual runs.
 
-O workflow também pode ser iniciado manualmente em **Actions → Build MindReset APK → Run workflow**.
+The public release workflow builds an Android App Bundle (AAB). For a production-signed build, configure the repository secrets described in `.github/workflows/release-aab.yml`.
 
-## Estrutura
+## Google Play target
+The generated Android project is configured to target API 36, which is required for new Google Play submissions from August 31, 2026.
 
-```text
-MindReset_V3_Cell/
-├── www/
-│   └── index.html
-├── .github/
-│   └── workflows/
-│       └── build-apk.yml
-├── package.json
-├── capacitor.config.json
-└── README.md
-```
+## Privacy
+The app's privacy policy is available at `www/privacy.html`. If using GitHub Pages, publish the repository's `www` directory or copy the policy to a public website before submitting to Google Play.
 
-## Como usar somente pelo celular
-
-### 1. Criar o repositório
-
-Crie um repositório no GitHub. Recomenda-se usar um repositório público para simplificar o uso do GitHub Actions sem configurações adicionais.
-
-### 2. Enviar os arquivos
-
-Envie para a raiz do repositório:
-
-- `package.json`
-- `capacitor.config.json`
-- pasta `www` com `index.html`
-- pasta `.github/workflows` com `build-apk.yml`
-
-A estrutura precisa ficar exatamente como mostrada acima.
-
-### 3. Fazer uma alteração
-
-Sempre que você editar `www/index.html` e fizer **Commit changes** na branch `main`, a compilação será iniciada automaticamente.
-
-### 4. Baixar o APK
-
-No GitHub:
-
-**Actions → Build MindReset APK → execução mais recente → Artifacts → MindReset-APK**
-
-Baixe o ZIP do artefato, extraia e instale `MindReset.apk` no Android.
-
-## Importante
-
-O APK gerado é uma versão **Debug**, adequada para testes, apresentação e instalação direta. Para publicar na Google Play, posteriormente será necessário configurar assinatura/release.
+## Important
+Before public distribution, verify the app's Data safety declarations, permission disclosures, store listing, screenshots, support contact, privacy-policy URL and signing configuration in Play Console.

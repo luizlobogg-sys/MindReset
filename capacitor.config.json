@@ -2,7 +2,5 @@
   "appId": "com.mindreset.app",
   "appName": "MindReset",
   "webDir": "www",
-  "server": {
-    "androidScheme": "https"
-  }
+  "server": { "androidScheme": "https" }
 }
