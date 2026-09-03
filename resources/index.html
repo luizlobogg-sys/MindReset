@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script>
+window.__debugLog=[];
+function __logDebug(msg){
+  window.__debugLog.push(msg);
+  var b=document.getElementById('debugOverlay');
+  if(b){b.style.display='block';b.textContent=window.__debugLog.join('\n\n')}
+}
+window.addEventListener('error',function(e){
+  __logDebug('ERRO: '+e.message+'\nem '+(e.filename||'?')+':'+e.lineno+':'+e.colno);
+});
+window.addEventListener('unhandledrejection',function(e){
+  var r=e.reason;
+  __logDebug('PROMISE REJEITADA: '+(r&&r.message?r.message:String(r)));
+});
+window.addEventListener('DOMContentLoaded',function(){
+  var b=document.getElementById('debugOverlay');
+  if(b&&window.__debugLog.length){b.style.display='block';b.textContent=window.__debugLog.join('\n\n')}
+});
+setTimeout(function(){
+  var s=document.getElementById('splash');
+  if(s&&!s.classList.contains('hidden')){
+    s.classList.add('hidden');
+    __logDebug('AVISO: splash foi fechada pelo timer de segurança (6s). O app pode não ter carregado corretamente — veja se há erros acima.');
+  }
+},6000);
+</script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#6c63ff"><title>MindReset</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#171a2b;--muted:#70768a;--line:#e8eaf2;--a:#6c63ff;--a2:#9b8cff;--good:#23a56a;--warn:#eea13b;--bad:#dc5c67;--shadow:0 16px 45px rgba(32,35,67,.09);--r:22px}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 10% 0,#eeecff 0,transparent 30%),linear-gradient(135deg,#f8f9fc,#f0f1ff);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink)}button,input,select{font:inherit}.app{max-width:1200px;margin:auto;min-height:100vh;display:flex}.side{width:245px;background:rgba(255,255,255,.9);backdrop-filter:blur(15px);border-right:1px solid var(--line);padding:24px 16px;position:sticky;top:0;height:100vh;z-index:5}.brand{font-weight:950;font-size:23px;letter-spacing:-1px;margin:0 10px 25px}.brand b{color:var(--a)}.nav{display:grid;gap:5px}.nav button{border:0;background:transparent;text-align:left;padding:13px;border-radius:14px;color:#666d80;font-weight:750;cursor:pointer;transition:.2s}.nav button:hover,.nav button.active{background:#efefff;color:var(--a);transform:translateX(2px)}.bottom-nav{margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}.main{flex:1;padding:26px 34px 55px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--a);font-weight:900}.top h1{margin:5px 0 0;font-size:30px;letter-spacing:-1.2px}.avatar{width:44px;height:44px;border-radius:15px;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;display:grid;place-items:center;font-weight:900;box-shadow:0 8px 20px #6c63ff35}.page{display:none;animation:in .25s ease}.page.active{display:block}@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}.grid{display:grid;grid-template-columns:1.3fr .7fr;gap:18px}.card{background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)}.hero{min-height:255px;color:#fff;background:linear-gradient(135deg,#22234b,#6c63ff 65%,#9b8cff);display:flex;align-items:center;justify-content:space-between;overflow:hidden;position:relative}.hero:before{content:'';position:absolute;width:250px;height:250px;border-radius:50%;right:-70px;top:-80px;background:#fff1;box-shadow:0 0 0 40px #fff1}.hero>*{position:relative}.hero h2{font-size:34px;line-height:1.05;margin:8px 0}.hero p{max-width:470px;line-height:1.55;color:#e9e9ff}.score{width:145px;height:145px;flex:none;border-radius:50%;background:conic-gradient(#fff 0 72%,#ffffff28 72%);display:grid;place-items:center;position:relative}.score:after{content:'';position:absolute;width:112px;height:112px;border-radius:50%;background:#3d3e70}.score b{position:relative;z-index:2;font-size:35px}.btn{border:0;border-radius:13px;padding:11px 16px;background:var(--a);color:#fff;font-weight:850;cursor:pointer;transition:.18s}.btn:hover{transform:translateY(-1px);filter:brightness(1.03)}.btn.secondary{background:#efefff;color:var(--a)}.btn.ghost{background:#f3f4f8;color:#545b70}.btn.danger{background:#fff0f2;color:var(--bad)}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.metric{padding:17px;border:1px solid var(--line);border-radius:16px;background:#fff}.metric small{display:block;color:var(--muted);font-weight:650}.metric strong{display:block;font-size:22px;margin-top:7px}.section{margin:22px 0 10px;font-size:17px}.bar{height:9px;background:#eceef5;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--a),var(--a2));transition:width .5s}.row{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}.tag{padding:6px 9px;border-radius:10px;background:#f0f1f6;color:#646b7d;font-size:11px;font-weight:850}.chart{height:190px;display:flex;align-items:end;gap:10px;padding-top:15px}.col{flex:1;text-align:center;color:var(--muted);font-size:11px}.barcol{height:140px;display:flex;align-items:end}.barcol i{display:block;width:100%;min-height:12px;border-radius:9px 9px 3px 3px;background:linear-gradient(180deg,var(--a2),var(--a));transition:.3s}.barcol i:hover{filter:brightness(1.08);transform:scaleY(1.03)}.moods{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}.mood{border:1px solid var(--line);background:#fff;border-radius:15px;padding:14px 5px;cursor:pointer;text-align:center;font-weight:750;transition:.18s}.mood:hover{transform:translateY(-2px)}.mood.selected{border-color:var(--a);background:#f0f0ff;color:var(--a);box-shadow:0 7px 18px #6c63ff18}.emoji{font-size:25px;display:block;margin-bottom:5px}.timer{text-align:center;padding:28px}.circle{width:240px;height:240px;border-radius:50%;border:12px solid #eeefff;display:grid;place-items:center;margin:20px auto 22px;background:radial-gradient(circle,#fff 55%,#f7f7ff);box-shadow:inset 0 0 30px #6c63ff10}.timer strong{font-size:64px;letter-spacing:-3px}.challenge{display:flex;gap:13px;align-items:center}.check{width:27px;height:27px;border-radius:8px;border:2px solid #ccd0dc;cursor:pointer;flex:none}.check.done{background:var(--good);border-color:var(--good);position:relative}.check.done:after{content:'✓';color:#fff;position:absolute;left:5px;top:-1px;font-weight:950}.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}.notice{padding:13px 15px;border-radius:14px;background:#f2f3ff;color:#51587a;font-size:13px;line-height:1.5}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(15px);background:#202334;color:#fff;padding:12px 17px;border-radius:14px;opacity:0;pointer-events:none;transition:.25s;z-index:20;box-shadow:var(--shadow)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.welcome{position:fixed;inset:0;background:#16172f;z-index:50;display:grid;place-items:center;padding:22px}.welcome.hidden{display:none}.welcome-box{max-width:500px;color:#fff;text-align:center}.welcome-logo{font-size:42px;font-weight:950;letter-spacing:-2px}.welcome-logo b{color:#9b8cff}.welcome-box p{color:#d7d7e9;line-height:1.6}.welcome-box .btn{background:#fff;color:#554de0}.mini{font-size:12px;color:var(--muted)}[data-theme="dark"]{--bg:#0f1020;--card:#181a2d;--ink:#f2f3ff;--muted:#a7abc0;--line:#2b2e49;--shadow:0 16px 45px rgba(0,0,0,.25)}[data-theme="dark"] body{background:radial-gradient(circle at 10% 0,#24204a 0,transparent 32%),linear-gradient(135deg,#111224,#17182d)}[data-theme="dark"] .side{background:rgba(20,21,39,.92)}[data-theme="dark"] .card,[data-theme="dark"] .metric,[data-theme="dark"] .mood{background:#181a2d}[data-theme="dark"] .select{background:#20223a;color:var(--ink)}[data-theme="dark"] .btn.secondary{background:#292b4b;color:#bcb7ff}[data-theme="dark"] .btn.ghost{background:#25273d;color:#c6c9da}[data-theme="dark"] .tag{background:#272940;color:#b7bbce}[data-theme="dark"] .notice{background:#222440;color:#c3c6dc}[data-theme="dark"] .circle{border-color:#2b2e49;background:radial-gradient(circle,#1d1f35 55%,#17182d)}.top-actions{display:flex;gap:8px;align-items:center}.icon-btn{width:44px;height:44px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font-size:20px;cursor:pointer;box-shadow:var(--shadow)}.tree-card{margin-top:18px;text-align:center}.tree-stage{font-size:86px;line-height:1;margin:8px 0 12px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.12));transition:.25s}.tree-progress{font-weight:850;color:var(--a)}.setting-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 0;border-top:1px solid var(--line)}.setting-row:first-child{border-top:0}.switch{position:relative;width:52px;height:30px;flex:none}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;inset:0;background:#cdd0dc;border-radius:99px;cursor:pointer;transition:.2s}.slider:before{content:'';position:absolute;width:22px;height:22px;left:4px;top:4px;background:#fff;border-radius:50%;transition:.2s}.switch input:checked+.slider{background:var(--a)}.switch input:checked+.slider:before{transform:translateX(22px)}.loss-note{margin-top:12px;padding:11px 13px;border-radius:12px;background:#fff2e5;color:#8a5a20;font-size:12px;line-height:1.45}[data-theme="dark"] .loss-note{background:#33291d;color:#e5bd7b}@media(max-width:850px){.top-actions{gap:6px}.icon-btn{width:40px;height:40px}.tree-stage{font-size:72px}}@media(max-width:850px){.app{display:block}.side{position:sticky;top:0;width:100%;height:auto;padding:12px 10px;border-right:0;border-bottom:1px solid var(--line)}.brand{margin:0 6px 8px}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap;padding:10px}.bottom-nav{display:none}.main{padding:18px 15px 40px}.grid{grid-template-columns:1fr}.hero{min-height:230px}.score{width:105px;height:105px}.score:after{width:79px;height:79px}.score b{font-size:27px}.metrics{grid-template-columns:1fr}.settings-grid{grid-template-columns:1fr}.moods{gap:5px}.mood{font-size:11px}.emoji{font-size:21px}.circle{width:200px;height:200px}.timer strong{font-size:52px}.top h1{font-size:25px}}
+
+.mood-result{margin-top:18px;padding:16px;border-radius:16px;background:linear-gradient(135deg,#f3f2ff,#f8f9ff);border:1px solid var(--line)}[data-theme="dark"] .mood-result{background:#222440}.mood-result h4{margin:0 0 6px}.mood-result p{margin:6px 0;line-height:1.5}.mood-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.mood-chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:8px 11px;cursor:pointer}.mood-chip.selected{border-color:var(--a);color:var(--a);background:#f0f0ff}.streak-card{margin-top:18px;display:grid;grid-template-columns:auto 1fr auto;gap:15px;align-items:center}.fire{font-size:48px}.streak-number{font-size:30px;font-weight:950}.week-details{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:14px}.day-detail{padding:10px 6px;border:1px solid var(--line);border-radius:12px;text-align:center;background:var(--card)}.day-detail b{display:block;font-size:12px}.day-detail small{display:block;color:var(--muted);margin-top:5px;font-size:10px}.qualify{color:var(--good);font-weight:850}.not-qualify{color:var(--muted);font-weight:700}.streak-badge{padding:6px 9px;border-radius:10px;background:#fff3e6;color:#9a611b;font-size:11px;font-weight:900}.goal-note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.45}@media(max-width:600px){.streak-card{grid-template-columns:auto 1fr}.streak-card .streak-badge{grid-column:2}.week-details{gap:5px}.day-detail{padding:8px 2px}.day-detail small{font-size:9px}}
+
+.splash{position:fixed;inset:0;z-index:100;background:linear-gradient(135deg,#16172f 0%,#242552 55%,#6c63ff 100%);display:grid;place-items:center;color:#fff;overflow:hidden}.splash.hidden{display:none}.splash-orb{position:absolute;width:360px;height:360px;border-radius:50%;background:#9b8cff22;filter:blur(2px);animation:splashOrb 2.2s ease-in-out infinite}.splash-box{text-align:center;position:relative;z-index:2}.splash-mark{width:105px;height:105px;margin:auto;border-radius:50%;overflow:hidden;box-shadow:0 20px 60px #0005;animation:splashLogo 1.25s cubic-bezier(.2,.8,.2,1) both}.splash-mark img{width:100%;height:100%;object-fit:cover;display:block}.splash-name{font-size:34px;font-weight:950;letter-spacing:-2px;margin-top:22px;animation:splashText 1s .25s both}.splash-name b{color:#c8c6ff}.splash-tag{margin-top:8px;color:#dddafa;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;animation:splashText 1s .45s both}@keyframes splashLogo{0%{opacity:0;transform:scale(.55) rotate(-12deg)}60%{opacity:1;transform:scale(1.08) rotate(2deg)}100%{transform:scale(1) rotate(0)}}@keyframes splashText{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}@keyframes splashOrb{0%,100%{transform:scale(.92);opacity:.55}50%{transform:scale(1.12);opacity:.9}}
+.login-actions{display:grid;gap:10px;margin-top:18px}.google-btn{background:#fff!important;color:#202334!important;border:1px solid #e3e4eb!important;display:flex;align-items:center;justify-content:center;gap:10px}.google-g{font-weight:950;font-size:19px}.account-card{display:flex;align-items:center;gap:12px}.account-photo{width:42px;height:42px;border-radius:14px;object-fit:cover;background:linear-gradient(135deg,var(--a),var(--a2));display:grid;place-items:center;color:#fff;font-weight:900}.account-email{font-size:12px;color:var(--muted);word-break:break-all}.cloud-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:10px;background:#edf9f2;color:#1f8050;font-size:11px;font-weight:850}.cloud-badge.off{background:#f1f2f6;color:#697085}[data-theme="dark"] .google-btn{background:#fff!important;color:#202334!important}
+</style>
+<style>
+/* MindReset 2.0 */
+.v2-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}.v2-stat{background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}.v2-stat .v2-icon{font-size:20px}.v2-stat strong{display:block;font-size:25px;margin-top:7px}.v2-stat small{color:var(--muted);font-weight:700}.xp-card{margin-top:18px;background:linear-gradient(135deg,#22234b,#6c63ff);color:#fff;border-radius:22px;padding:20px;position:relative;overflow:hidden}.xp-card:after{content:'';position:absolute;width:180px;height:180px;border-radius:50%;right:-70px;top:-80px;background:#fff1}.xp-top{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}.xp-level{font-size:27px;font-weight:950}.xp-bar{height:9px;background:#ffffff2b;border-radius:99px;overflow:hidden;margin-top:14px}.xp-bar i{display:block;height:100%;background:#fff;border-radius:99px;transition:width .5s}.reset-card{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:18px;background:linear-gradient(135deg,#f2f0ff,#fff);border:1px solid #dedbff}.reset-card h3{margin:3px 0 5px}.reset-main{flex:1}.reset-btn{min-width:135px}.ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.achievement{border:1px solid var(--line);border-radius:16px;padding:15px;background:var(--card);min-height:125px}.achievement.locked{opacity:.5;filter:grayscale(.8)}.achievement .badge{font-size:27px}.achievement b{display:block;margin-top:8px}.achievement small{color:var(--muted)}.progress-summary{display:grid;grid-template-columns:1fr 1fr;gap:18px}.progress-number{font-size:36px;font-weight:950;letter-spacing:-1px}.reset-overlay{position:fixed;inset:0;background:#11152bcc;backdrop-filter:blur(7px);z-index:50;display:none;place-items:center;padding:20px}.reset-overlay.show{display:grid}.reset-modal{max-width:430px;width:100%;background:var(--card);color:var(--ink);border-radius:26px;padding:25px;box-shadow:0 25px 80px #0005}.reset-step{text-align:center;padding:18px 5px}.reset-breathe{font-size:72px;animation:breathe 4s ease-in-out infinite}@keyframes breathe{0%,100%{transform:scale(.8);opacity:.6}50%{transform:scale(1.08);opacity:1}}.reset-actions{display:flex;gap:10px;margin-top:15px}.reset-actions>*{flex:1}.v2-label{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;color:var(--a);font-weight:900}.progress-tabs{display:flex;gap:8px;margin-bottom:14px}.progress-tabs button{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 13px;font-weight:800;cursor:pointer;color:var(--muted)}.progress-tabs button.active{background:#efefff;color:var(--a);border-color:#dedbff}@media(max-width:900px){.v2-grid{grid-template-columns:1fr 1fr}.ach-grid{grid-template-columns:1fr 1fr}.progress-summary{grid-template-columns:1fr}}@media(max-width:650px){.v2-grid{grid-template-columns:1fr 1fr}.ach-grid{grid-template-columns:1fr}.reset-card{align-items:flex-start;flex-direction:column}.reset-btn{width:100%}}
+</style>
+</head>
+<body>
+<div id="debugOverlay" style="display:none;position:fixed;left:0;right:0;bottom:0;max-height:45vh;overflow:auto;background:#000000ee;color:#ff8080;font:11px/1.5 monospace;padding:12px;z-index:999999;white-space:pre-wrap"></div>
+<div id="splash" class="splash"><div class="splash-orb"></div><div class="splash-box"><div class="splash-mark"><img src="data:image/png;base64,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" alt="MindReset"></div><div class="splash-name">MIND<b>RESET</b></div><div class="splash-tag">Digital wellbeing</div></div></div>
+<div id="welcome" class="welcome"><div class="welcome-box"><div class="welcome-logo">MIND<b>RESET</b></div><h1 id="welcomeTitle">Take back your attention.</h1><p id="welcomeText">MindReset helps you build healthier technology habits through small, practical changes. Save your progress in the cloud by signing in with Google, or continue without an account.</p><div class="login-actions"><button class="btn google-btn" onclick="signInGoogle()" id="googleBtn"><span class="google-g">G</span><span id="googleBtnText">Continue with Google</span></button><button class="btn" onclick="finishWelcome()" id="startBtn">Continue without account</button></div><p class="mini" style="margin-top:14px;color:#c7c8dc" id="loginNote">Google sign-in keeps your MindReset progress available across devices.</p></div></div>
+<div class="app">
+<aside class="side"><div class="brand">MIND<b>RESET</b></div><div class="nav" id="nav"><button class="active" data-page="home">Dashboard</button><button data-page="checkup">Check-up</button><button data-page="mood">Mood</button><button data-page="focus">Focus</button><button data-page="challenges">Challenges</button><button data-page="progress">Progress</button></div><div class="bottom-nav"><button class="nav settings-link" data-page="settings">Settings</button></div></aside>
+<main class="main"><div class="top"><div><div class="eyebrow" id="eyebrow">DIGITAL WELLBEING</div><h1 id="title">Your day, reset.</h1></div><div class="top-actions"><button class="icon-btn" onclick="quickTheme()" id="themeQuick" aria-label="Toggle theme">☾</button><button class="icon-btn" onclick="go('settings')" id="settingsQuick" aria-label="Settings">⚙</button><div class="avatar">M</div></div></div>
+<section id="home" class="page active"><div class="grid"><div class="card hero"><div><div class="eyebrow" style="color:#c8c6ff" id="heroEyebrow">YOUR DIGITAL HEALTH</div><h2 id="heroTitle">Build better tech habits.</h2><p id="heroText">Understand your digital habits, protect your focus and create healthier routines.</p><button class="btn" onclick="go('checkup')" id="heroBtn">View my check-up</button></div><div class="score"><b id="scoreHome">72</b></div></div><div class="card"><div class="eyebrow" id="todayEyebrow">TODAY</div><h3 id="todayTitle">One small reset</h3><div class="metric"><small id="goalLabel">Daily goal</small><strong id="goalText">30 min less social media</strong><div class="bar" style="margin-top:12px"><i id="goalBar" style="width:68%"></i></div></div><div class="row"><span id="sleepText">Sleep reset</span><span class="tag" id="tonightTag">Tonight</span></div><div class="row"><span id="focusText">Focus session</span><button class="btn secondary" onclick="go('focus')" id="startFocusBtn">Start</button></div></div></div><h3 class="section" id="weekTitle">Your week</h3><div class="card"><div class="chart" id="homeChart"></div><div class="week-details" id="weekDetails"></div><div class="goal-note" id="weekGoalNote">The chart and numbers show your recorded screen time for each day.</div></div><div class="card streak-card"><div class="fire">🔥</div><div><div class="eyebrow" id="streakEyebrow">FOCUS STREAK</div><div class="streak-number"><span id="streakNumber">0</span> <span id="streakDays">days</span></div><div class="mini" id="streakDesc">Keep your daily screen-time goal and complete a Pomodoro.</div></div><span class="streak-badge" id="streakBest">Best: 0</span></div><div class="v2-grid">
+<div class="v2-stat"><span class="v2-icon">⏱️</span><small id="v2FocusLabel">Focus today</small><strong id="v2Focus">0m</strong></div>
+<div class="v2-stat"><span class="v2-icon">📱</span><small id="v2SocialLabel">Social media</small><strong id="v2Social">—</strong></div>
+<div class="v2-stat"><span class="v2-icon">🎯</span><small id="v2GoalLabel">Daily progress</small><strong id="v2Goal">0%</strong></div>
+<div class="v2-stat"><span class="v2-icon">⭐</span><small id="v2XpLabel">XP earned</small><strong id="v2Xp">0</strong></div>
+</div>
+<div class="xp-card"><div class="xp-top"><div><div class="v2-label" style="color:#c8c6ff" id="v2LevelLabel">MINDRESET LEVEL</div><div class="xp-level" id="v2Level">Level 1</div></div><b id="v2XpText">0 / 500 XP</b></div><div class="xp-bar"><i id="v2XpBar" style="width:0%"></i></div></div>
+<div class="reset-card card"><div class="reset-main"><div class="v2-label" id="resetEyebrow">QUICK RESET</div><h3 id="resetTitle">Need a break from the screen?</h3><div class="mini" id="resetDesc">Start a 2-minute guided reset and return with a clearer mind.</div></div><button class="btn reset-btn" onclick="openReset()" id="resetNowBtn">RESET NOW</button></div>
+<div class="metrics"><div class="metric"><small id="screenLabel">Screen time</small><strong id="screenMetric">—</strong></div><div class="metric"><small id="socialLabel">Social media</small><strong id="socialMetric">—</strong></div><div class="metric"><small id="usageLabel">Usage access</small><strong id="usageMetric">Not set</strong></div></div><div class="card" style="margin-top:18px"><div class="notice" id="homeNotice">Connect Android Usage Access to replace sample screen-time values with your real daily usage. You control this permission in Android Settings.</div><button class="btn secondary" style="margin-top:12px" onclick="requestUsage()" id="usageBtn">Connect usage data</button></div></section>
+<section id="checkup" class="page"><div class="card"><div class="eyebrow">CHECK-UP</div><h2 id="checkTitle">Your digital health score</h2><p id="checkDesc">A simple wellbeing indicator based on your technology habits. It is not a medical diagnosis.</p><div class="metrics"><div class="metric"><small id="cScreen">Screen time</small><strong id="cScreenVal">—</strong></div><div class="metric"><small id="cSocial">Social media</small><strong id="cSocialVal">—</strong></div><div class="metric"><small id="cFocus">Focus sessions</small><strong id="cFocusVal">0</strong></div></div><h3 class="section" id="scoreLabel">Score</h3><div class="bar"><i id="scoreBar" style="width:72%"></i></div><p><b id="scoreText">72/100 — Good start.</b></p></div><div class="card" style="margin-top:18px"><h3 id="improveTitle">Your next best moves</h3><div id="improvements"></div></div></section>
+<section id="mood" class="page"><div class="card"><div class="eyebrow">MOOD TRACKER</div><h2 id="moodTitle">How do you feel today?</h2><p id="moodDesc">Choose your mood, tell us what influenced it, and MindReset will connect it with your digital habits.</p><div class="moods" id="moods"></div><div class="metric" style="margin-top:18px"><small id="todayMoodLabel">Today's mood</small><strong id="moodValue">Not recorded</strong></div><div class="mood-result" id="moodResult"><h4 id="moodResultTitle">Make your mood useful</h4><p id="moodResultText">Choose a mood to get a personalized reflection.</p><div class="mood-chips" id="moodChips"></div></div></div><div class="card" style="margin-top:18px"><h3 id="insightTitle">Your pattern</h3><p id="insight">After a few days, MindReset can show how your mood relates to screen time and focus sessions.</p></div></section>
+<section id="focus" class="page"><div class="card timer"><div class="eyebrow">FOCUS MODE</div><h2 id="focusTitle">One task. Fewer distractions.</h2><p id="focusDesc">A 25-minute focus session. Leave the app open or put your phone away.</p><div class="circle"><strong id="timer">25:00</strong></div><button class="btn" id="timerBtn" onclick="toggleTimer()">Start focus</button> <button class="btn secondary" onclick="resetTimer()" id="resetBtn">Reset</button><p class="mini" id="focusCount">Sessions completed today: 0</p></div><div class="card tree-card"><div class="eyebrow" id="treeEyebrow">YOUR FOCUS TREE</div><div class="tree-stage" id="treeStage">🌰</div><h3 id="treeTitle">Start your tree</h3><p class="mini" id="treeDesc">Every completed 25-minute session grows your tree.</p><div class="tree-progress" id="treeProgress">0 Pomodoros</div></div></section>
+<section id="challenges" class="page"><div class="card"><div class="eyebrow">7-DAY RESET</div><h2 id="challengeTitle">Small changes, every day.</h2><p id="challengeDesc">Complete the challenges at your own pace. Progress is saved on your device.</p><div class="bar" style="margin:14px 0"><i id="challengeBar" style="width:0%"></i></div><div class="mini" id="challengeProgress">0 of 7 completed</div><div id="challengeList" style="margin-top:8px"></div></div></section>
+<section id="progress" class="page"><div class="card"><div class="eyebrow">MINDRESET 2.0</div><h2 id="progressTitle">Your progress</h2><p id="progressDesc">See your growth, XP and achievements in one place.</p><div class="progress-summary"><div class="metric"><small id="pLevelLabel">Current level</small><strong class="progress-number" id="pLevel">1</strong><div class="mini" id="pXp">0 XP</div></div><div class="metric"><small id="pFocusLabel">Total focus</small><strong class="progress-number" id="pFocus">0m</strong><div class="mini" id="pPomodoros">0 Pomodoros</div></div></div><h3 class="section" id="achTitle">Achievements</h3><div class="ach-grid" id="achievements"></div></div></section>
+<section id="settings" class="page"><div class="card"><div class="eyebrow">SETTINGS</div><h2 id="settingsTitle">Make MindReset yours.</h2><div class="settings-grid"><div><label class="mini" id="langLabel">Language</label><select class="select" id="langSelect" onchange="setLang(this.value)"><option value="en">English</option><option value="pt">Português</option><option value="es">Español</option></select></div><div><label class="mini" id="themeLabel">Theme</label><select class="select" id="themeSelect" onchange="setTheme(this.value)"><option value="light">Light</option><option value="dark">Dark</option></select></div></div><div class="setting-row"><div><b id="strictTitle">Strict Focus Mode</b><div class="mini" id="strictDesc">If you leave MindReset while a Pomodoro is running, the session is lost and resets to 25:00.</div></div><label class="switch"><input type="checkbox" id="strictToggle" onchange="setStrict(this.checked)"><span class="slider"></span></label></div><div class="loss-note" id="strictNote">Keep MindReset open during the session. Leaving the app, locking the screen or switching apps ends the active Pomodoro when Strict Focus Mode is on.</div><div style="margin-top:18px"><label class="mini" id="usageAccessLabel">Android Usage Access</label><button class="btn secondary" style="width:100%;margin-top:5px" onclick="requestUsage()" id="settingsUsageBtn">Open Android Settings</button></div><div class="card account-card" style="margin-top:18px;padding:16px"><div class="account-photo" id="accountPhoto">M</div><div style="flex:1"><b id="accountName">MindReset account</b><div class="account-email" id="accountEmail">Not signed in</div><div style="margin-top:7px"><span class="cloud-badge off" id="cloudBadge">Local only</span></div></div><button class="btn secondary" onclick="accountAction()" id="accountBtn">Sign in</button></div><div class="notice" style="margin-top:18px" id="privacyText">Privacy first: your mood, challenges and preferences are stored locally. MindReset does not require an account.</div><button class="btn danger" style="margin-top:18px" onclick="clearData()" id="clearBtn">Reset my local data</button><a href="privacy.html" target="_blank" style="display:block;margin-top:14px;color:var(--a);font-weight:800;text-decoration:none" id="privacyLink">Privacy Policy</a></div></section>
+</main></div><div id="resetOverlay" class="reset-overlay"><div class="reset-modal"><div class="v2-label">MINDRESET RESET</div><div id="resetStep1" class="reset-step"><div class="reset-breathe">◉</div><h2 id="resetStepTitle">Pause for a moment</h2><p id="resetStepText">Put the phone down, relax your shoulders and take a slow breath.</p><div class="reset-actions"><button class="btn secondary" onclick="closeReset()" id="resetCancel">Cancel</button><button class="btn" onclick="resetNext()" id="resetNextBtn">I'm ready</button></div></div></div></div><div id="toast" class="toast"></div>
+<script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-compat.js"></script>
+<script>
+const native=window.Capacitor?.Plugins?.MindResetUsage;
+const firebaseConfig={
+  apiKey:'AIzaSyBN4sPdVMAcAA7YyhCcUTc_lFyKTCq_E8U',
+  authDomain:'mindreset-efc6d.firebaseapp.com',
+  projectId:'mindreset-efc6d',
+  storageBucket:'mindreset-efc6d.firebasestorage.app',
+  messagingSenderId:'702721574838',
+  appId:'1:702721574838:android:bb1ce645a07337be82a317'
+};
+
+let cloudAuth=null,cloudDb=null,cloudUser=null;
+let nativeFirebaseAuth=null;
+
+function firebaseReady(){
+  return firebaseConfig.apiKey &&
+    !firebaseConfig.apiKey.startsWith('YOUR_') &&
+    firebaseConfig.projectId &&
+    !firebaseConfig.projectId.startsWith('YOUR_');
+}
+
+function nativeAuthReady(){
+  return window.Capacitor &&
+    window.Capacitor.Plugins &&
+    window.Capacitor.Plugins.FirebaseAuthentication;
+}
+
+function initCloud(){
+  if(!firebaseReady()||!window.firebase)return;
+
+  try{
+    if(!firebase.apps.length){
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    cloudAuth=firebase.auth();
+    cloudDb=firebase.firestore();
+
+    if(nativeAuthReady()){
+      nativeFirebaseAuth=window.Capacitor.Plugins.FirebaseAuthentication;
+    }
+
+    cloudAuth.onAuthStateChanged(async user=>{
+      cloudUser=user||null;
+      renderAccount();
+
+      if(user){
+        await loadCloudState();
+
+        if(state.welcome){
+          state.welcome=false;
+          save();
+          document.getElementById('welcome')?.classList.add('hidden');
+          checkUsage();
+        }
+      }
+    });
+
+  }catch(e){
+    console.warn('Firebase init failed',e);
+  }
+}
+
+async function signInGoogle(){
+
+  if(!firebaseReady()){
+    toast(
+      state.lang==='pt'
+      ?'O Firebase ainda não está configurado.'
+      :state.lang==='es'
+      ?'Firebase todavía no está configurado.'
+      :'Firebase is not configured yet.'
+    );
+    return;
+  }
+
+  if(typeof firebase==='undefined'){
+    toast(
+      state.lang==='pt'
+      ?'Não foi possível carregar o Firebase. Verifique sua conexão com a internet.'
+      :state.lang==='es'
+      ?'No se pudo cargar Firebase. Verifica tu conexión a internet.'
+      :'Could not load Firebase. Check your internet connection.'
+    );
+    return;
+  }
+
+  try{
+
+    if(!nativeAuthReady()){
+
+      const provider=new firebase.auth.GoogleAuthProvider();
+
+      await cloudAuth.signInWithRedirect(provider);
+
+      return;
+    }
+
+    const result=await nativeFirebaseAuth.signInWithGoogle();
+
+    if(!result){
+      throw new Error('Google sign-in returned no result.');
+    }
+
+    let idToken=null;
+
+    if(result.credential && result.credential.idToken){
+      idToken=result.credential.idToken;
+    }
+
+    if(!idToken && nativeFirebaseAuth.getIdToken){
+      const tokenResult=await nativeFirebaseAuth.getIdToken();
+      idToken=tokenResult?.token||tokenResult?.idToken||null;
+    }
+
+    if(!idToken){
+      throw new Error('Google ID token was not returned.');
+    }
+
+    const credential=firebase.auth.GoogleAuthProvider.credential(idToken);
+
+    await cloudAuth.signInWithCredential(credential);
+
+    state.welcome=false;
+    save();
+
+    document.getElementById('welcome')?.classList.add('hidden');
+
+    checkUsage();
+
+    toast(
+      state.lang==='pt'
+      ?'Login realizado com sucesso.'
+      :state.lang==='es'
+      ?'Inicio de sesión realizado correctamente.'
+      :'Signed in successfully.'
+    );
+
+  }catch(e){
+
+    console.error('Google sign-in failed:',e);
+
+    let message=e?.message||'Google sign-in failed.';
+
+    if(
+      e?.code==='auth/popup-blocked'||
+      e?.code==='auth/cancelled-popup-request'
+    ){
+      message=
+        state.lang==='pt'
+        ?'O login do Google foi bloqueado ou cancelado.'
+        :state.lang==='es'
+        ?'El inicio de sesión de Google fue bloqueado o cancelado.'
+        :'Google sign-in was blocked or cancelled.';
+    }
+
+    toast(message);
+  }
+}
+
+async function loadCloudState(){
+  if(!cloudUser||!cloudDb)return;
+
+  try{
+
+    const ref=cloudDb
+      .collection('users')
+      .doc(cloudUser.uid);
+
+    const snap=await ref.get();
+
+    if(snap.exists){
+
+      const remote=snap.data().state||{};
+
+      state={
+        ...state,
+        ...remote
+      };
+
+      state.daily=state.daily||{};
+
+      localStorage.setItem(
+        'mindreset_v3',
+        JSON.stringify(state)
+      );
+
+      render();
+
+    }else{
+
+      await ref.set({
+        state,
+        updatedAt:
+          firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+    }
+
+  }catch(e){
+
+    console.warn('Cloud load failed',e);
+
+    toast(
+      state.lang==='pt'
+      ?'Não foi possível carregar seus dados da nuvem.'
+      :state.lang==='es'
+      ?'No se pudieron cargar tus datos de la nube.'
+      :'Could not load your cloud data.'
+    );
+  }
+}
+
+let cloudSaveTimer=null;
+
+function queueCloudSave(){
+
+  if(!cloudUser||!cloudDb)return;
+
+  clearTimeout(cloudSaveTimer);
+
+  cloudSaveTimer=setTimeout(async()=>{
+
+    try{
+
+      await cloudDb
+        .collection('users')
+        .doc(cloudUser.uid)
+        .set(
+          {
+            state,
+            updatedAt:
+              firebase.firestore.FieldValue.serverTimestamp()
+          },
+          {
+            merge:true
+          }
+        );
+
+    }catch(e){
+
+      console.warn('Cloud save failed',e);
+
+    }
+
+  },500);
+}
+
+function renderAccount(){
+
+  const name=document.getElementById('accountName');
+  const email=document.getElementById('accountEmail');
+  const photo=document.getElementById('accountPhoto');
+  const badge=document.getElementById('cloudBadge');
+  const btn=document.getElementById('accountBtn');
+
+  if(!name)return;
+
+  if(cloudUser){
+
+    name.textContent=
+      cloudUser.displayName||'Google account';
+
+    email.textContent=
+      cloudUser.email||'';
+
+    if(cloudUser.photoURL){
+
+      photo.innerHTML=
+        '<img src="'+
+        cloudUser.photoURL+
+        '" style="width:100%;height:100%;border-radius:14px;object-fit:cover">';
+
+    }else{
+
+      photo.textContent=
+        (cloudUser.displayName||'G')
+        .slice(0,1)
+        .toUpperCase();
+
+    }
+
+    badge.textContent=
+      state.lang==='pt'
+      ?'Sincronizado na nuvem'
+      :state.lang==='es'
+      ?'Sincronizado en la nube'
+      :'Cloud synced';
+
+    badge.classList.remove('off');
+
+    btn.textContent=
+      state.lang==='pt'
+      ?'Sair'
+      :state.lang==='es'
+      ?'Cerrar sesión'
+      :'Sign out';
+
+  }else{
+
+    name.textContent=t('accountTitle');
+    email.textContent=t('notSigned');
+    photo.textContent='M';
+
+    badge.textContent=t('localOnly');
+    badge.classList.add('off');
+
+    btn.textContent=t('signIn');
+  }
+}
+
+async function accountAction(){
+
+  if(cloudUser){
+
+    try{
+      if(nativeAuthReady()){
+        await nativeFirebaseAuth.signOut();
+      }
+    }catch(e){
+      console.warn('Native sign out failed',e);
+    }
+
+    try{
+      await cloudAuth.signOut();
+    }catch(e){
+      console.warn('Firebase sign out failed',e);
+    }
+
+    return;
+  }
+
+  await signInGoogle();
+}
+
+const defaultState={lang:(navigator.language||'en').startsWith('pt')?'pt':(navigator.language||'en').startsWith('es')?'es':'en',theme:'light',strictFocus:true,welcome:true,mood:'',done:[],focus:0,usage:false,screenMs:0,socialMs:0,daily:{},moodReason:'',bestStreak:0};
+let state={...defaultState,...JSON.parse(localStorage.getItem('mindreset_v3')||'{}')};state.daily=state.daily||{};dayRecord();
+const i18n={
+ en:{welcomeTitle:'Take back your attention.',welcomeText:'MindReset helps you build healthier technology habits through small, practical changes. Your wellbeing data stays on your device.',start:'Start MindReset',dash:'Dashboard',check:'Check-up',mood:'Mood',focus:'Focus',challenges:'Challenges',settings:'Settings',eyebrow:'DIGITAL WELLBEING',title:'Your day, reset.',heroEyebrow:'YOUR DIGITAL HEALTH',heroTitle:'Build better tech habits.',heroText:'Understand your digital habits, protect your focus and create healthier routines.',heroBtn:'View my check-up',today:'TODAY',todayTitle:'One small reset',goal:'Daily goal',goalText:'30 min less social media',sleep:'Sleep reset',tonight:'Tonight',focusSession:'Focus session',start:'Start',week:'Your week',screen:'Screen time',social:'Social media',usage:'Usage access',notSet:'Not set',homeNotice:'Connect Android Usage Access to replace sample screen-time values with your real daily usage. You control this permission in Android Settings.',connect:'Connect usage data',checkTitle:'Your digital health score',checkDesc:'A simple wellbeing indicator based on your technology habits. It is not a medical diagnosis.',focusSessions:'Focus sessions',score:'Score',improve:'Your next best moves',moodTitle:'How do you feel today?',moodDesc:'Record your mood and compare it with your digital habits. This is a wellbeing tool, not a diagnosis.',todayMood:"Today's mood",notRecorded:'Not recorded',insightTitle:'Your insight',insight:'Record your mood to receive a simple habit reflection.',focusTitle:'One task. Fewer distractions.',focusDesc:'A 25-minute focus session. Leave the app open or put your phone away.',pause:'Pause',resume:'Resume focus',reset:'Reset',sessions:'Sessions completed today',challengeTitle:'Small changes, every day.',challengeDesc:'Complete the challenges at your own pace. Progress is saved on your device.',completed:'completed',settingsTitle:'Make MindReset yours.',language:'Language',usageAccess:'Android Usage Access',openSettings:'Open Android Settings',privacy:'Privacy first: your mood, challenges and preferences are stored locally. MindReset does not require an account.',privacyLink:'Privacy Policy',clear:'Reset my local data',accountTitle:'MindReset account',notSigned:'Not signed in',localOnly:'Local only',signIn:'Sign in',signOut:'Sign out',great:'Great',good:'Good',okay:'Okay',low:'Low',bad:'Bad',scoreGood:'Good start.',scoreImprove:'Room to improve.',scoreStrong:'Strong habits.',moods:['Great','Good','Okay','Low','Bad'],ch:['No social media for 30 minutes','No phone during meals','Stop screens 30 minutes before bed','Complete one 25-minute focus session','Take a 20-minute real-world break','Turn off unnecessary notifications','Review your digital habits'],improvements:['Reduce late-night screen use','Protect one phone-free meal','Complete a focus session today'],saved:'Saved',complete:'Challenge completed',reopen:'Challenge reopened',focusDone:'Focus session complete',usageGranted:'Real usage connected',usageDenied:'Usage Access is not enabled yet.',theme:'Theme',light:'Light',dark:'Dark',strictTitle:'Strict Focus Mode',strictDesc:'If you leave MindReset while a Pomodoro is running, the session is lost and resets to 25:00.',strictNote:'Keep MindReset open during the session. Leaving the app, locking the screen or switching apps ends the active Pomodoro when Strict Focus Mode is on.',treeEyebrow:'YOUR FOCUS TREE',treeTitle:'Start your tree',treeDesc:'Every completed 25-minute session grows your tree.',pomodoros:'Pomodoros',treeSeed:'Seed',treeSprout:'Sprout',treeSmall:'Young tree',treeFull:'Focus tree',treeForest:'Focus forest',streakEyebrow:'FOCUS STREAK',streakDays:'days',streakDesc:'Keep your daily screen-time goal and complete a Pomodoro.',streakBest:'Best',weekGoalNote:'Numbers show your recorded screen time for each day. The 3-hour goal is a personal wellbeing target, not a medical limit.',moodResultTitle:'Make your mood useful',moodResultText:'Choose a mood to get a personalized reflection.',moodPatternTitle:'Your pattern',moodReasons:['Sleep','School / work','Social media','Friends / family','Exercise','Something else'],moodInsightLow:'Your mood looks lower today. If screen time is high, try a short break and one focused task.',moodInsightMid:'A neutral day. Try one Pomodoro and a short screen-free break, then check in again.',moodInsightHigh:'Good mood. Protect it with intentional screen time and a focused session.',moodInsightCompare:'MindReset compares your check-ins with screen time and focus. It does not prove cause and effect.',moodSavedReason:'Saved. We will use this check-in to find patterns over time.',sessionLost:'Pomodoro lost: you left MindReset before completing the session.'},
+ pt:{welcomeTitle:'Retome o controle da sua atenção.',welcomeText:'O MindReset ajuda você a criar hábitos digitais mais saudáveis por meio de pequenas mudanças práticas. Seus dados ficam no dispositivo.',start:'Começar MindReset',dash:'Painel',check:'Check-up',mood:'Humor',focus:'Foco',challenges:'Desafios',settings:'Configurações',eyebrow:'BEM-ESTAR DIGITAL',title:'Seu dia, seu reset.',heroEyebrow:'SUA SAÚDE DIGITAL',heroTitle:'Crie hábitos digitais melhores.',heroText:'Entenda seus hábitos digitais, proteja seu foco e construa uma rotina mais saudável.',heroBtn:'Ver meu check-up',today:'HOJE',todayTitle:'Um pequeno reset',goal:'Meta diária',goalText:'30 min a menos nas redes sociais',sleep:'Reset do sono',tonight:'Hoje à noite',focusSession:'Sessão de foco',start:'Começar',week:'Sua semana',screen:'Tempo de tela',social:'Redes sociais',usage:'Acesso aos dados',notSet:'Não configurado',homeNotice:'Conecte o acesso de uso do Android para trocar os valores de exemplo pelo seu tempo de tela real. Você controla essa permissão nas Configurações do Android.',connect:'Conectar dados de uso',checkTitle:'Sua pontuação de saúde digital',checkDesc:'Um indicador simples baseado nos seus hábitos de tecnologia. Não é um diagnóstico médico.',focusSessions:'Sessões de foco',score:'Pontuação',improve:'Próximos passos',moodTitle:'Como você está se sentindo hoje?',moodDesc:'Registre seu humor e compare com seus hábitos digitais. É uma ferramenta de bem-estar, não um diagnóstico.',todayMood:'Humor de hoje',notRecorded:'Não registrado',insightTitle:'Seu insight',insight:'Registre seu humor para receber uma reflexão simples sobre seus hábitos.',focusTitle:'Uma tarefa. Menos distrações.',focusDesc:'Uma sessão de foco de 25 minutos. Deixe o app aberto ou guarde o celular.',pause:'Pausar',resume:'Continuar foco',reset:'Reiniciar',sessions:'Sessões concluídas hoje',challengeTitle:'Pequenas mudanças, todos os dias.',challengeDesc:'Complete os desafios no seu ritmo. O progresso fica salvo no dispositivo.',completed:'concluídos',settingsTitle:'Personalize o MindReset.',language:'Idioma',usageAccess:'Acesso de uso do Android',openSettings:'Abrir Configurações do Android',privacy:'Privacidade primeiro: humor, desafios e preferências são armazenados localmente. O MindReset não exige conta.',clear:'Apagar meus dados locais',great:'Ótimo',good:'Bem',okay:'Normal',low:'Baixo',bad:'Ruim',scoreGood:'Bom começo.',scoreImprove:'Há espaço para melhorar.',scoreStrong:'Hábitos fortes.',moods:['Ótimo','Bem','Normal','Baixo','Ruim'],ch:['30 minutos sem redes sociais','Sem celular durante as refeições','Pare as telas 30 minutos antes de dormir','Complete uma sessão de foco de 25 minutos','Faça uma pausa de 20 minutos na vida real','Desative notificações desnecessárias','Revise seus hábitos digitais'],improvements:['Reduza o uso de telas à noite','Proteja uma refeição sem celular','Faça uma sessão de foco hoje'],saved:'Salvo',complete:'Desafio concluído',reopen:'Desafio reaberto',focusDone:'Sessão de foco concluída',usageGranted:'Uso real conectado',usageDenied:'O Acesso de uso ainda não está ativado.',theme:'Tema',light:'Claro',dark:'Escuro',strictTitle:'Modo Foco Estrito',strictDesc:'Se você sair do MindReset enquanto um Pomodoro estiver ativo, a sessão será perdida e voltará para 25:00.',strictNote:'Mantenha o MindReset aberto durante a sessão. Sair do app, bloquear a tela ou trocar de aplicativo encerra o Pomodoro ativo quando o modo estrito está ligado.',treeEyebrow:'SUA ÁRVORE DE FOCO',treeTitle:'Comece sua árvore',treeDesc:'Cada sessão completa de 25 minutos faz sua árvore crescer.',pomodoros:'Pomodoros',treeSeed:'Semente',treeSprout:'Broto',treeSmall:'Árvore jovem',treeFull:'Árvore de foco',treeForest:'Floresta de foco',streakEyebrow:'SEQUÊNCIA DE FOCO',streakDays:'dias',streakDesc:'Mantenha sua meta diária de tela e conclua um Pomodoro.',streakBest:'Recorde',weekGoalNote:'Os números mostram seu tempo de tela registrado em cada dia. A meta de 3 horas é um objetivo pessoal de bem-estar, não um limite médico.',moodResultTitle:'Faça seu humor ser útil',moodResultText:'Escolha um humor para receber uma reflexão personalizada.',moodPatternTitle:'Seu padrão',moodReasons:['Sono','Estudos / trabalho','Redes sociais','Amigos / família','Exercício','Outra coisa'],moodInsightLow:'Seu humor parece mais baixo hoje. Se o tempo de tela estiver alto, experimente uma pausa curta e uma tarefa focada.',moodInsightMid:'Um dia neutro. Faça um Pomodoro e uma pausa sem tela, depois registre novamente como você está.',moodInsightHigh:'Bom humor. Proteja esse momento com uso intencional da tela e uma sessão de foco.',moodInsightCompare:'O MindReset compara seus registros com tempo de tela e foco. Isso não prova causa e efeito.',moodSavedReason:'Salvo. Vamos usar este registro para encontrar padrões ao longo do tempo.',sessionLost:'Pomodoro perdido: você saiu do MindReset antes de concluir a sessão.'},
+ es:{welcomeTitle:'Recupera el control de tu atención.',welcomeText:'MindReset te ayuda a crear hábitos digitales más saludables mediante pequeños cambios prácticos. Tus datos permanecen en tu dispositivo.',start:'Comenzar MindReset',dash:'Panel',check:'Revisión',mood:'Ánimo',focus:'Enfoque',challenges:'Desafíos',settings:'Ajustes',eyebrow:'BIENESTAR DIGITAL',title:'Tu día, tu reset.',heroEyebrow:'TU SALUD DIGITAL',heroTitle:'Crea mejores hábitos digitales.',heroText:'Comprende tus hábitos digitales, protege tu concentración y crea rutinas más saludables.',heroBtn:'Ver mi revisión',today:'HOY',todayTitle:'Un pequeño reset',goal:'Meta diaria',goalText:'30 min menos de redes sociales',sleep:'Reset del sueño',tonight:'Esta noche',focusSession:'Sesión de enfoque',start:'Comenzar',week:'Tu semana',screen:'Tiempo de pantalla',social:'Redes sociales',usage:'Acceso de uso',notSet:'No configurado',homeNotice:'Conecta el acceso de uso de Android para reemplazar los valores de ejemplo por tu tiempo de pantalla real. Tú controlas este permiso en Ajustes de Android.',connect:'Conectar datos de uso',checkTitle:'Tu puntuación de salud digital',checkDesc:'Un indicador sencillo basado en tus hábitos tecnológicos. No es un diagnóstico médico.',focusSessions:'Sesiones de enfoque',score:'Puntuación',improve:'Tus próximos pasos',moodTitle:'¿Cómo te sientes hoy?',moodDesc:'Registra tu estado de ánimo y compáralo con tus hábitos digitales. Es una herramienta de bienestar, no un diagnóstico.',todayMood:'Ánimo de hoy',notRecorded:'No registrado',insightTitle:'Tu insight',insight:'Registra tu ánimo para recibir una reflexión sencilla sobre tus hábitos.',focusTitle:'Una tarea. Menos distracciones.',focusDesc:'Una sesión de enfoque de 25 minutos. Deja la app abierta o guarda el teléfono.',pause:'Pausar',resume:'Continuar enfoque',reset:'Reiniciar',sessions:'Sesiones completadas hoy',challengeTitle:'Pequeños cambios, cada día.',challengeDesc:'Completa los desafíos a tu ritmo. El progreso se guarda en tu dispositivo.',completed:'completados',settingsTitle:'Haz MindReset tuyo.',language:'Idioma',usageAccess:'Acceso de uso de Android',openSettings:'Abrir Ajustes de Android',privacy:'Privacidad primero: tu ánimo, desafíos y preferencias se almacenan localmente. MindReset no requiere una cuenta.',privacyLink:'Política de Privacidad',clear:'Borrar mis datos locales',accountTitle:'Cuenta MindReset',notSigned:'No has iniciado sesión',localOnly:'Solo en este dispositivo',signIn:'Iniciar sesión',signOut:'Cerrar sesión',great:'Genial',good:'Bien',okay:'Regular',low:'Bajo',bad:'Mal',scoreGood:'Buen comienzo.',scoreImprove:'Hay margen de mejora.',scoreStrong:'Hábitos fuertes.',moods:['Genial','Bien','Regular','Bajo','Mal'],ch:['30 minutos sin redes sociales','Sin teléfono durante las comidas','Deja las pantallas 30 minutos antes de dormir','Completa una sesión de enfoque de 25 minutos','Toma un descanso de 20 minutos en la vida real','Desactiva notificaciones innecesarias','Revisa tus hábitos digitales'],improvements:['Reduce el uso de pantallas por la noche','Protege una comida sin teléfono','Haz una sesión de enfoque hoy'],saved:'Guardado',complete:'Desafío completado',reopen:'Desafío reabierto',focusDone:'Sesión de enfoque completada',usageGranted:'Uso real conectado',usageDenied:'El acceso de uso todavía no está activado.',theme:'Tema',light:'Claro',dark:'Oscuro',strictTitle:'Modo de enfoque estricto',strictDesc:'Si sales de MindReset mientras un Pomodoro está activo, la sesión se pierde y vuelve a 25:00.',strictNote:'Mantén MindReset abierto durante la sesión. Salir de la app, bloquear la pantalla o cambiar de aplicación termina el Pomodoro activo cuando el modo estricto está activado.',treeEyebrow:'TU ÁRBOL DE ENFOQUE',treeTitle:'Empieza tu árbol',treeDesc:'Cada sesión completa de 25 minutos hace crecer tu árbol.',pomodoros:'Pomodoros',treeSeed:'Semilla',treeSprout:'Brote',treeSmall:'Árbol joven',treeFull:'Árbol de enfoque',treeForest:'Bosque de enfoque',streakEyebrow:'RACHA DE FOCO',streakDays:'días',streakDesc:'Mantén tu meta diaria de pantalla y completa un Pomodoro.',streakBest:'Récord',weekGoalNote:'Los números muestran tu tiempo de pantalla registrado por día. La meta de 3 horas es un objetivo personal de bienestar, no un límite médico.',moodResultTitle:'Haz útil tu estado de ánimo',moodResultText:'Elige un estado de ánimo para recibir una reflexión personalizada.',moodPatternTitle:'Tu patrón',moodReasons:['Sueño','Estudio / trabajo','Redes sociales','Amigos / familia','Ejercicio','Algo más'],moodInsightLow:'Tu estado de ánimo parece más bajo hoy. Si el tiempo de pantalla es alto, prueba una pausa y una tarea enfocada.',moodInsightMid:'Un día neutral. Prueba un Pomodoro y una pausa sin pantalla, y vuelve a registrar cómo te sientes.',moodInsightHigh:'Buen ánimo. Protégelo con uso intencional de la pantalla y una sesión de enfoque.',moodInsightCompare:'MindReset compara tus registros con tiempo de pantalla y enfoque. No demuestra causa y efecto.',moodSavedReason:'Guardado. Usaremos este registro para encontrar patrones con el tiempo.',sessionLost:'Pomodoro perdido: saliste de MindReset antes de completar la sesión.'}
+};
+function t(k){return i18n[state.lang][k]??i18n.en[k]??k}
+// ===== MindReset 2.0 =====
+const V2_XP_KEY='mindreset_v2_xp';
+function v2Days(){return Object.values(state.daily||{});}
+function v2TotalFocus(){return v2Days().reduce((a,r)=>a+(r.focus||0),0);}
+function v2Xp(){return (state.focus||0)*50+(state.done||[]).length*100+Math.min(10,v2Days().filter(r=>r.mood!=='' ).length)*10;}
+function v2Level(){return Math.floor(v2Xp()/500)+1;}
+function v2LevelProgress(){return v2Xp()%500;}
+function v2AchievementData(){const xp=v2Xp(), focus=v2TotalFocus(), streak=streakStatus().best, done=(state.done||[]).length;return [
+['🌱', 'First Reset', 'Complete your first focus session.', focus>=1],
+['🔥', '7 Day Streak', 'Reach a 7-day streak.', streak>=7],
+['🎯', 'Focus Master', 'Complete 10 focus sessions.', focus>=10],
+['🏆', 'Challenge Hunter', 'Complete all 7 challenges.', done>=7],
+['⭐', '1,000 XP', 'Earn 1,000 XP.', xp>=1000],
+['🌳', 'Focus Forest', 'Complete 8 focus sessions.', focus>=8]
+];}
+function renderV2(){const rec=dayRecord(), xp=v2Xp(), level=v2Level(), prog=v2LevelProgress();setTxt('v2Focus',Math.round((rec.focus||0)*25)+'m');setTxt('v2Social',formatMs(rec.socialMs));setTxt('v2Xp',xp);setTxt('v2Level','Level '+level);setTxt('v2XpText',prog+' / 500 XP');const xb=document.getElementById('v2XpBar');if(xb)xb.style.width=(prog/5)+'%';const gp=document.getElementById('v2Goal');if(gp)gp.textContent=Math.min(100,Math.round(((rec.focus||0)/3)*100))+'%';setTxt('pLevel',level);setTxt('pXp',xp+' XP');setTxt('pFocus',Math.round(v2TotalFocus()*25)+'m');setTxt('pPomodoros',v2TotalFocus()+' Pomodoros');const a=document.getElementById('achievements');if(a)a.innerHTML=v2AchievementData().map(x=>`<div class="achievement ${x[3]?'':'locked'}"><div class="badge">${x[0]}</div><b>${x[1]}</b><small>${x[2]}</small></div>`).join('');}
+let resetStage=0;function openReset(){resetStage=0;document.getElementById('resetOverlay').classList.add('show');document.getElementById('resetStep1').innerHTML=`<div class="reset-step"><div class="reset-breathe">◉</div><h2>${v2ResetText().title}</h2><p>${v2ResetText().text}</p><div class="reset-actions"><button class="btn secondary" onclick="closeReset()">${v2ResetText().cancel}</button><button class="btn" onclick="resetNext()">${v2ResetText().next}</button></div></div>`;}
+function v2ResetText(){const l=state.lang||'en';if(l==='pt')return {title:'Pare por um momento',text:'Afaste o celular, relaxe os ombros e respire lentamente.',cancel:'Cancelar',next:'Estou pronto',next2:'Continuar',done:'Reset concluído',doneText:'Você recuperou alguns minutos de atenção. Agora escolha uma tarefa pequena.'};if(l==='es')return {title:'Haz una pausa',text:'Deja el teléfono, relaja los hombros y respira lentamente.',cancel:'Cancelar',next:'Estoy listo',next2:'Continuar',done:'Reset completado',doneText:'Recuperaste unos minutos de atención. Ahora elige una tarea pequeña.'};return {title:'Pause for a moment',text:'Put the phone down, relax your shoulders and take a slow breath.',cancel:'Cancel',next:'I’m ready',next2:'Continue',done:'Reset complete',doneText:'You recovered a few minutes of attention. Now choose one small task.'};}
+function resetNext(){const t2=v2ResetText();if(resetStage===0){resetStage=1;document.getElementById('resetStep1').innerHTML=`<div class="reset-step"><div class="reset-breathe">◎</div><h2>${state.lang==='pt'?'Agora, respire':state.lang==='es'?'Ahora, respira':'Now, breathe'}</h2><p>${state.lang==='pt'?'Inspire por 4 segundos, segure por 2 e solte por 6.':state.lang==='es'?'Inhala 4 segundos, mantén 2 y suelta 6.':'Inhale for 4 seconds, hold for 2, then exhale for 6.'}</p><div class="reset-actions"><button class="btn secondary" onclick="closeReset()">${t2.cancel}</button><button class="btn" onclick="resetNext()">${t2.next2}</button></div></div>`;}else{closeReset();toast(t2.done);}}
+function closeReset(){document.getElementById('resetOverlay').classList.remove('show');}
+function save(){localStorage.setItem('mindreset_v3',JSON.stringify(state));queueCloudSave();renderAccount()}
+function setText(id,key){const e=document.getElementById(id);if(e)e.textContent=t(key)}
+function go(page){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(page).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===page));const titles={home:'title',checkup:'checkTitle',mood:'moodTitle',focus:'focusTitle',challenges:'challengeTitle',progress:'progressTitle',settings:'settingsTitle'};document.getElementById('title').textContent=page==='home'?t('title'):document.getElementById(titles[page]).textContent;window.scrollTo({top:0,behavior:'smooth'})}
+document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
+function finishWelcome(){state.welcome=false;save();document.getElementById('welcome').classList.add('hidden');checkUsage()}
+function formatMs(ms){if(!ms)return '—';let m=Math.round(ms/60000);return `${Math.floor(m/60)}h ${String(m%60).padStart(2,'0')}m`}
+const SCREEN_GOAL_MS=3*60*60*1000;
+function dateKey(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
+function dayRecord(key=dateKey()){state.daily=state.daily||{};state.daily[key]=state.daily[key]||{screenMs:0,socialMs:0,focus:0,mood:'',moodReason:''};return state.daily[key]}
+function todayFocus(){return dayRecord().focus||0}
+function updateTodayUsage(){const d=dayRecord();d.screenMs=state.screenMs||0;d.socialMs=state.socialMs||0}
+function score(){let s=72;if(state.screenMs){let h=state.screenMs/3600000;s-=Math.max(0,h-3)*5;s+=Math.min(10,(state.done||[]).length*2);s+=Math.min(8,state.focus||0)}return Math.max(35,Math.min(98,Math.round(s)))}
+function renderChart(){const now=new Date();const labels=state.lang==='pt'?['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']:state.lang==='es'?['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];const items=[];for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);const rec=(state.daily||{})[dateKey(d)]||{};items.push({key:dateKey(d),day:labels[d.getDay()],ms:rec.screenMs||0})}const max=Math.max(SCREEN_GOAL_MS,...items.map(x=>x.ms),1);document.getElementById('homeChart').innerHTML=items.map(x=>`<div class="col"><div class="barcol"><i style="height:${Math.max(4,Math.round((x.ms/max)*100))}%" title="${formatMs(x.ms)}"></i></div>${x.day}</div>`).join('');document.getElementById('weekDetails').innerHTML=items.map(x=>`<div class="day-detail"><b>${x.day}</b><small>${formatMs(x.ms)}</small><small class="${x.ms&&x.ms<=SCREEN_GOAL_MS?'qualify':'not-qualify'}">${x.ms?(x.ms<=SCREEN_GOAL_MS?'✓':'↑'):'—'}</small></div>`).join('')}
+function streakStatus(){const today=new Date();let streak=0;for(let i=0;i<365;i++){const d=new Date(today);d.setDate(today.getDate()-i);const r=(state.daily||{})[dateKey(d)];if(r&&r.screenMs>0&&r.screenMs<=SCREEN_GOAL_MS&&(r.focus||0)>0)streak++;else break}let best=0,run=0;for(let i=364;i>=0;i--){const d=new Date(today);d.setDate(today.getDate()-i);const r=(state.daily||{})[dateKey(d)];if(r&&r.screenMs>0&&r.screenMs<=SCREEN_GOAL_MS&&(r.focus||0)>0){run++;best=Math.max(best,run)}else run=0}state.bestStreak=Math.max(state.bestStreak||0,best,streak);return {streak,best:state.bestStreak}}
+function renderStreak(){const x=streakStatus();document.getElementById('streakNumber').textContent=x.streak;document.getElementById('streakDays').textContent=t('streakDays');document.getElementById('streakDesc').textContent=t('streakDesc');document.getElementById('streakBest').textContent=`${t('streakBest')}: ${x.best}`}
+function moodInsightFor(i){const rec=dayRecord();const high=rec.screenMs>SCREEN_GOAL_MS;const focus=rec.focus>0;if(i>=3&&high)return t('moodInsightLow');if(i===2)return t('moodInsightMid');if(i<=1&&focus)return t('moodInsightHigh');return t('moodInsightCompare')}
+function renderMoods(){const emojis=['😄','🙂','😐','😔','😣'];const rec=dayRecord();const selected=rec.mood===''?'':Number(rec.mood);document.getElementById('moods').innerHTML=t('moods').map((m,i)=>`<button class="mood ${selected===i?'selected':''}" onclick="setMood(${i})"><span class="emoji">${emojis[i]}</span>${m}</button>`).join('');document.getElementById('moodValue').textContent=selected===''?t('notRecorded'):t('moods')[selected];document.getElementById('moodResultTitle').textContent=t('moodResultTitle');document.getElementById('moodResultText').textContent=selected===''?t('moodResultText'):moodInsightFor(selected);document.getElementById('moodChips').innerHTML=selected===''?'':t('moodReasons').map((r,i)=>`<button class="mood-chip ${rec.moodReason===String(i)?'selected':''}" onclick="setMoodReason(${i})">${r}</button>`).join('');document.getElementById('insightTitle').textContent=t('moodPatternTitle');document.getElementById('insight').textContent=selected===''?t('insight'):moodInsightFor(selected)}
+function setMood(i){const rec=dayRecord();rec.mood=String(i);state.mood=i;save();renderMoods();toast(t('saved'))}
+function setMoodReason(i){const rec=dayRecord();rec.moodReason=String(i);save();renderMoods();toast(t('moodSavedReason'))}
+function renderChallenges(){const c=state.done||[];document.getElementById('challengeList').innerHTML=t('ch').map((x,i)=>`<div class="row challenge"><span class="check ${c.includes(i)?'done':''}" onclick="toggleChallenge(${i})"></span><span style="flex:1"><b>${i+1}.</b> ${x}</span><span class="tag">${c.includes(i)?t('completed'):'Open'}</span></div>`).join('');document.getElementById('challengeBar').style.width=(c.length/7*100)+'%';document.getElementById('challengeProgress').textContent=`${c.length} of 7 ${t('completed')}`}
+function toggleChallenge(i){state.done=state.done||[];if(state.done.includes(i)){state.done=state.done.filter(x=>x!==i);toast(t('reopen'))}else{state.done.push(i);toast(t('complete'))}save();render()}
+function renderImprovements(){document.getElementById('improvements').innerHTML=t('improvements').map((x,i)=>`<div class="row"><span>${['◷','⌂','◉'][i]} ${x}</span><span class="tag">${i===0?'High':'Next'}</span></div>`).join('')}
+let seconds=1500,interval=null;function treeInfo(n){if(n>=8)return ['🌳🌳','treeForest'];if(n>=4)return ['🌳','treeFull'];if(n>=2)return ['🌿','treeSmall'];if(n>=1)return ['🌱','treeSprout'];return ['🌰','treeSeed']}function renderTree(){const [emoji,key]=treeInfo(state.focus);document.getElementById('treeStage').textContent=emoji;document.getElementById('treeTitle').textContent=t(key);document.getElementById('treeDesc').textContent=t('treeDesc');document.getElementById('treeProgress').textContent=state.focus+' '+t('pomodoros')}function renderTimer(){document.getElementById('timer').textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}function updateTimerButton(){document.getElementById('timerBtn').textContent=interval?t('pause'):(seconds<1500?t('resume'):t('start'))}function toggleTimer(){if(interval){clearInterval(interval);interval=null;updateTimerButton();return}interval=setInterval(()=>{seconds--;renderTimer();if(seconds<=0){clearInterval(interval);interval=null;seconds=1500;state.focus++;dayRecord().focus=(dayRecord().focus||0)+1;save();render();toast(t('focusDone'))}},1000);updateTimerButton()}function resetTimer(){clearInterval(interval);interval=null;seconds=1500;renderTimer();updateTimerButton()}function setTheme(v){state.theme=v;save();applyTheme();render();toast(t('saved'))}function applyTheme(){document.documentElement.setAttribute('data-theme',state.theme||'light');const b=document.getElementById('themeQuick');if(b)b.textContent=state.theme==='dark'?'☀':'☾'}function quickTheme(){setTheme(state.theme==='dark'?'light':'dark')}function setStrict(v){state.strictFocus=!!v;save();render()}function handleAppLeave(){if(interval&&state.strictFocus){clearInterval(interval);interval=null;seconds=1500;renderTimer();updateTimerButton();toast(t('sessionLost'))}}document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')handleAppLeave()});window.addEventListener('pagehide',handleAppLeave)
+async function checkUsage(){if(!native)return;try{const r=await native.hasUsageAccess();state.usage=!!r.granted;if(state.usage){const d=await native.getTodayUsage();state.screenMs=d.screenTimeMs||0;state.socialMs=d.socialTimeMs||0;updateTodayUsage()}save();render()}catch(e){}}
+async function requestUsage(){if(!native){toast('Android Usage Access is available in the Android app build.');return}try{await native.openUsageAccessSettings();setTimeout(checkUsage,1200)}catch(e){toast(t('usageDenied'))}}
+function setLang(v){state.lang=v;save();render();toast(t('saved'))}function clearData(){if(confirm(state.lang==='pt'?'Apagar todos os dados locais do MindReset?':state.lang==='es'?'¿Borrar todos los datos locales de MindReset?':'Delete all MindReset local data?')){localStorage.removeItem('mindreset_v3');localStorage.removeItem(V2_XP_KEY);location.reload()}}
+function toast(msg){const x=document.getElementById('toast');x.textContent=msg;x.classList.add('show');clearTimeout(window.toastT);window.toastT=setTimeout(()=>x.classList.remove('show'),2200)}
+function setTxt(id,val){const e=document.getElementById(id);if(e)e.textContent=val}
+function render(){
+  try{
+    renderChart();
+    renderStreak();
+    renderMoods();
+    renderChallenges();
+    renderImprovements();
+    renderTree();
+    renderV2();
+    applyTheme();
+    renderAccount();
+    updateTodayUsage();
+
+    const s=score();
+    setTxt('scoreHome',s);
+    const bar=document.getElementById('scoreBar');
+    if(bar)bar.style.width=s+'%';
+    setTxt('scoreText',s+'/100 — '+(s>=80?t('scoreStrong'):s>=60?t('scoreGood'):t('scoreImprove')));
+
+    const rec=dayRecord();
+    setTxt('cScreenVal',formatMs(rec.screenMs));
+    setTxt('cSocialVal',formatMs(rec.socialMs));
+    setTxt('cFocusVal',state.focus||0);
+    setTxt('screenMetric',formatMs(rec.screenMs));
+    setTxt('socialMetric',formatMs(rec.socialMs));
+    setTxt('usageMetric',state.usage?t('usageGranted'):t('notSet'));
+
+    const langSelect=document.getElementById('langSelect');
+    if(langSelect)langSelect.value=state.lang;
+    const themeSelect=document.getElementById('themeSelect');
+    if(themeSelect)themeSelect.value=state.theme||'light';
+    const strictToggle=document.getElementById('strictToggle');
+    if(strictToggle)strictToggle.checked=!!state.strictFocus;
+
+  }catch(e){
+    console.warn('render failed',e);
+    if(window.__logDebug)window.__logDebug('render() falhou: '+(e&&e.message?e.message:e));
+  }
+}
+render();renderTimer();if(!state.welcome)checkUsage();
+
+window.addEventListener('load',()=>{initCloud();renderAccount();setTimeout(()=>{document.getElementById('splash')?.classList.add('hidden')},2100)});
+</script></body></html>
