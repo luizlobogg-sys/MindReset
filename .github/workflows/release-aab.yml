@@ -39,6 +39,32 @@ jobs:
       - name: Create Android project
         run: npx cap add android
 
+      - name: Configure Firebase Android
+        run: |
+          if [ -f google-services.json ]; then
+            mkdir -p android/app
+            cp google-services.json android/app/google-services.json
+            python3 - <<'PY2'
+          from pathlib import Path
+          p=Path("android/build.gradle")
+          s=p.read_text()
+          if "com.google.gms.google-services" not in s:
+              if "plugins {" in s:
+                  s=s.replace("plugins {", "plugins {\n    id 'com.google.gms.google-services' version '4.4.2' apply false", 1)
+              else:
+                  s += "\nbuildscript { dependencies { classpath 'com.google.gms:google-services:4.4.2' } }\n"
+          p.write_text(s)
+          p=Path("android/app/build.gradle")
+          s=p.read_text()
+          if "com.google.gms.google-services" not in s:
+              s += "\napply plugin: 'com.google.gms.google-services'\n"
+          p.write_text(s)
+          PY2
+            echo 'Firebase Android configuration installed.'
+          else
+            echo 'WARNING: google-services.json not found; native Google Sign-In needs this Firebase Android file.'
+          fi
+
       - name: Set Google Play API target
         run: |
           sed -i 's/compileSdkVersion = [0-9][0-9]*/compileSdkVersion = 36/' android/variables.gradle
