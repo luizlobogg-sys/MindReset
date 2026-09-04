@@ -1,0 +1,115 @@
+name: Release MindReset AAB
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android 36 SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Install npm dependencies
+        run: npm install --no-audit --no-fund --no-progress --prefer-offline
+
+      - name: Create Android project
+        run: npx cap add android
+
+      - name: Set Google Play API target
+        run: |
+          sed -i 's/compileSdkVersion = [0-9][0-9]*/compileSdkVersion = 36/' android/variables.gradle
+          sed -i 's/targetSdkVersion = [0-9][0-9]*/targetSdkVersion = 36/' android/variables.gradle
+
+      - name: Install native plugin
+        run: |
+          mkdir -p android/app/src/main/java/com/mindreset/app/plugins
+          cp native/MindResetUsagePlugin.java android/app/src/main/java/com/mindreset/app/plugins/MindResetUsagePlugin.java
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('android/app/src/main/java/com/mindreset/app/MainActivity.java')
+          s=p.read_text()
+          s=s.replace('package com.mindreset.app;\n', 'package com.mindreset.app;\n\nimport android.os.Bundle;\nimport com.mindreset.app.plugins.MindResetUsagePlugin;\n')
+          if 'registerPlugin(MindResetUsagePlugin.class)' not in s:
+              s=s.replace('public class MainActivity extends BridgeActivity {', 'public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(Bundle savedInstanceState) {\n        registerPlugin(MindResetUsagePlugin.class);\n        super.onCreate(savedInstanceState);\n    }')
+          p.write_text(s)
+          PY
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('android/app/src/main/AndroidManifest.xml')
+          s=p.read_text()
+          if 'android.permission.PACKAGE_USAGE_STATS' not in s:
+              s=s.replace('>\n    <application', '>\n    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />\n    <application', 1)
+          p.write_text(s)
+          PY
+
+      - name: Generate app icon
+        run: npx @capacitor/assets generate --android --iconBackgroundColor "#1E1F44" --iconBackgroundColorDark "#1E1F44"
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Configure release signing
+        env:
+          KEYSTORE_B64: ${{ secrets.MINDRESET_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.MINDRESET_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.MINDRESET_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.MINDRESET_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "Missing release signing secrets. Configure MINDRESET_KEYSTORE_B64, MINDRESET_KEYSTORE_PASSWORD, MINDRESET_KEY_ALIAS and MINDRESET_KEY_PASSWORD." >&2
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 --decode > android/mindreset-upload.jks
+          cat > android/keystore.properties <<EOF2
+          storeFile=mindreset-upload.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF2
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('android/app/build.gradle')
+          s=p.read_text()
+          if 'keystore.properties' not in s:
+              s=s.replace('android {', '''def keystorePropertiesFile = rootProject.file("keystore.properties")\ndef keystoreProperties = new Properties()\nif (keystorePropertiesFile.exists()) { keystoreProperties.load(new FileInputStream(keystorePropertiesFile)) }\n\nandroid {''', 1)
+          if 'signingConfigs {' not in s:
+              s=s.replace('android {', '''android {\n    signingConfigs {\n        release {\n            if (keystorePropertiesFile.exists()) {\n                storeFile file(keystoreProperties['storeFile'])\n                storePassword keystoreProperties['storePassword']\n                keyAlias keystoreProperties['keyAlias']\n                keyPassword keystoreProperties['keyPassword']\n            }\n        }\n    }''', 1)
+          import re
+          if 'signingConfig signingConfigs.release' not in s:
+              s=re.sub(r'(buildTypes\s*\{\s*release\s*\{)', r'\1\n            signingConfig signingConfigs.release', s, count=1)
+          p.write_text(s)
+          PY
+
+      - name: Build signed AAB
+        working-directory: android
+        run: ./gradlew bundleRelease
+
+      - name: Upload release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: MindReset-Release-AAB
+          path: android/app/build/outputs/bundle/release/app-release.aab
