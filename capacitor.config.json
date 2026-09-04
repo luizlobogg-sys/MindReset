@@ -2,15 +2,5 @@
   "appId": "com.mindreset.app",
   "appName": "MindReset",
   "webDir": "www",
-  "server": {
-    "androidScheme": "https"
-  },
-  "plugins": {
-    "FirebaseAuthentication": {
-      "providers": [
-        "google.com"
-      ],
-      "skipNativeAuth": false
-    }
-  }
+  "server": { "androidScheme": "https" }
 }

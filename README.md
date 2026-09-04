@@ -32,8 +32,3 @@ Before public distribution, verify the app's Data safety declarations, permissio
 ## V7: Google login
 
 See `FIREBASE_SETUP.md` for configuring optional Google sign-in and cloud synchronization.
-
-
-## V2.0/V5 package
-
-The project now includes the updated MindReset web interface, Android Usage Access plugin, native Firebase Authentication dependency, Google provider configuration, and CI integration checks. Native Google Sign-In still requires the real Firebase `google-services.json` for package `com.mindreset.app`.
