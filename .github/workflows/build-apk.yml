@@ -131,6 +131,19 @@ jobs:
         working-directory: android
         run: ./gradlew signingReport | tee signing-report.txt
 
+
+      - name: Deploy MindReset AI backend
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' && secrets.GEMINI_API_KEY != '' }}
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/firebase-service-account.json
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          printf '%s' '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > firebase-service-account.json
+          npm --prefix functions install --no-audit --no-fund --no-progress
+          npx firebase-tools functions:secrets:set GEMINI_API_KEY --data-file <(printf '%s' "$GEMINI_API_KEY") --project mindreset-efc6d --non-interactive
+          npx firebase-tools deploy --only functions:mindResetAI --project mindreset-efc6d --non-interactive
+          rm -f firebase-service-account.json
+
       - name: Build debug APK
         working-directory: android
         run: ./gradlew assembleDebug
