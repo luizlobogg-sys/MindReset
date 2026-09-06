@@ -102,8 +102,35 @@ jobs:
       - name: Generate app icon
         run: npx @capacitor/assets generate --android --iconBackgroundColor "#1E1F44" --iconBackgroundColorDark "#1E1F44"
 
+      - name: Configure Firebase Google Sign-In dependencies
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('android/variables.gradle')
+          s=p.read_text()
+          if 'rgcfaIncludeGoogle' not in s:
+              s=s.replace('ext {', "ext {\n    rgcfaIncludeGoogle = true\n    androidxCredentialsVersion = '1.3.0'")
+          p.write_text(s)
+          PY
+
       - name: Sync Capacitor
         run: npx cap sync android
+
+      - name: Apply Google Services Gradle plugin
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('android/build.gradle')
+          s=root.read_text()
+          if "com.google.gms:google-services" not in s:
+              s=s.replace("dependencies {", "dependencies {\n        classpath 'com.google.gms:google-services:4.4.2'")
+          root.write_text(s)
+          app=Path('android/app/build.gradle')
+          s=app.read_text()
+          if "com.google.gms.google-services" not in s:
+              s += "\n\napply plugin: 'com.google.gms.google-services'\n"
+          app.write_text(s)
+          PY
 
       - name: Build debug APK
         working-directory: android
