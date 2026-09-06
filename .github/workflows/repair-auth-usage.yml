@@ -1,0 +1,66 @@
+name: Repair Google Auth and Usage Access
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Repair Google sign-in in web app
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('www/index.html')
+          s = p.read_text()
+          pattern = r"async function signInGoogle\(\)\{.*?\}\nasync function loadCloudState\(\)"
+          replacement = r'''async function signInGoogle(){
+          try{
+            if(!window.firebase) throw new Error('Firebase SDK is not loaded');
+            if(!cloudAuth) initCloud();
+            if(!cloudAuth) throw new Error('Firebase Authentication is not ready');
+            const nativeAuth=window.Capacitor?.Plugins?.FirebaseAuthentication;
+            if(nativeAuth?.signInWithGoogle){
+              toast(state.lang==='pt'?'Abrindo login do Google...':state.lang==='es'?'Abriendo inicio de sesión de Google...':'Opening Google sign-in...');
+              const result=await nativeAuth.signInWithGoogle({useCredentialManager:false});
+              const idToken=result?.credential?.idToken;
+              if(idToken){
+                const credential=firebase.auth.GoogleAuthProvider.credential(idToken);
+                await cloudAuth.signInWithCredential(credential);
+              }else if(result?.user){
+                cloudUser=result.user;
+                renderAccount();
+              }else{
+                throw new Error('Google sign-in returned no credential');
+              }
+              renderAccount();
+              return;
+            }
+            throw new Error('Native Google Authentication plugin is not available in this APK');
+          }catch(e){
+            console.error('Google sign-in failed',e);
+            toast((e?.message||'Google sign-in failed').replace('Firebase: ','').replace(/\\s+/g,' ').trim());
+          }
+          }
+          async function loadCloudState()'''
+          out,n = re.subn(pattern, replacement, s, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('Could not locate signInGoogle function')
+          p.write_text(out)
+          PY
+
+      - name: Commit repaired web code
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add www/index.html
+          git commit -m "Fix Google sign-in flow"
+          git push
