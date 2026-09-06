@@ -76,6 +76,29 @@ jobs:
           p.write_text(s)
           PY
 
+
+      - name: Configure Firebase Android
+        env:
+          FIREBASE_JSON_B64: ${{ secrets.FIREBASE_JSON_B64 }}
+        run: |
+          if [ -z "$FIREBASE_JSON_B64" ]; then
+            echo "ERROR: GitHub secret FIREBASE_JSON_B64 is not configured." >&2
+            exit 1
+          fi
+          mkdir -p android/app
+          echo "$FIREBASE_JSON_B64" | base64 --decode > android/app/google-services.json
+          test -s android/app/google-services.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('android/app/google-services.json')
+          d=json.loads(p.read_text())
+          project=d.get('project_info',{})
+          app=(d.get('client') or [{}])[0]
+          print('Firebase project:', project.get('project_id'))
+          print('Android package:', ((app.get('client_info') or {}).get('android_client_info') or {}).get('package_name'))
+          PY
+
       - name: Generate app icon
         run: npx @capacitor/assets generate --android --iconBackgroundColor "#1E1F44" --iconBackgroundColorDark "#1E1F44"
 
