@@ -28,7 +28,7 @@
 <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore-compat.js"></script>
 <script>
 const native=window.Capacitor?.Plugins?.MindResetUsage;
-const firebaseConfig={apiKey:'YOUR_FIREBASE_API_KEY',authDomain:'YOUR_PROJECT.firebaseapp.com',projectId:'YOUR_PROJECT_ID',storageBucket:'YOUR_PROJECT.firebasestorage.app',messagingSenderId:'YOUR_MESSAGING_SENDER_ID',appId:'YOUR_FIREBASE_APP_ID'};
+const firebaseConfig={apiKey:'AIzaSyBN4sPdVMAcAA7YyhCcUT_c_LFyKTCq_E8U',authDomain:'mindreset-efc6d.firebaseapp.com',projectId:'mindreset-efc6d',storageBucket:'mindreset-efc6d.firebasestorage.app',messagingSenderId:'702721574838',appId:'1:702721574838:android:bb1ce645a07337be82a317'};
 let cloudAuth=null,cloudDb=null,cloudUser=null;
 function firebaseReady(){return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith('YOUR_') && firebaseConfig.projectId && !firebaseConfig.projectId.startsWith('YOUR_')}
 function initCloud(){if(!firebaseReady()||!window.firebase)return;try{firebase.initializeApp(firebaseConfig);cloudAuth=firebase.auth();cloudDb=firebase.firestore();cloudAuth.onAuthStateChanged(async user=>{cloudUser=user||null;renderAccount();if(user){await loadCloudState();}})}catch(e){console.warn('Firebase init failed',e)}}
