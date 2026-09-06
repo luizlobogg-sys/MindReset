@@ -1,0 +1,44 @@
+name: Fix splash screen
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add splash fail-safe
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('www/index.html')
+          s = p.read_text()
+          old = "window.addEventListener('load',()=>{initCloud();renderAccount();setTimeout(()=>{document.getElementById('splash')?.classList.add('hidden')},2100)});"
+          new = """// Splash fail-safe: never allow the intro animation to block the app.
+          (function(){
+            const hideSplash=()=>{const el=document.getElementById('splash');if(el)el.classList.add('hidden')};
+            setTimeout(hideSplash,2600);
+            if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(hideSplash,1800),{once:true});
+            else setTimeout(hideSplash,1800);
+            window.addEventListener('load',()=>{try{initCloud();renderAccount()}catch(e){console.warn(e)};hideSplash()},{once:true});
+          })();"""
+          if old in s:
+              s=s.replace(old,new)
+          else:
+              raise SystemExit('Expected splash startup code not found; refusing unsafe edit')
+          p.write_text(s)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add www/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix splash screen startup fail-safe"
+          git push
