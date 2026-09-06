@@ -74,5 +74,12 @@ function setLang(v){state.lang=v;save();render();toast(t('saved'))}function clea
 function toast(msg){const x=document.getElementById('toast');x.textContent=msg;x.classList.add('show');clearTimeout(window.toastT);window.toastT=setTimeout(()=>x.classList.remove('show'),2200)}
 render();renderTimer();if(!state.welcome)checkUsage();
 
-window.addEventListener('load',()=>{initCloud();renderAccount();setTimeout(()=>{document.getElementById('splash')?.classList.add('hidden')},2100)});
+// Splash fail-safe: never allow the intro animation to block the app.
+(function(){
+  const hideSplash=()=>{const el=document.getElementById('splash');if(el)el.classList.add('hidden')};
+  setTimeout(hideSplash,2600);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(hideSplash,1800),{once:true});
+  else setTimeout(hideSplash,1800);
+  window.addEventListener('load',()=>{try{initCloud();renderAccount()}catch(e){console.warn(e)};hideSplash()},{once:true});
+})();
 </script></body></html>
