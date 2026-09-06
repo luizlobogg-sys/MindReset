@@ -153,3 +153,5 @@ jobs:
         with:
           name: MindReset-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+          
