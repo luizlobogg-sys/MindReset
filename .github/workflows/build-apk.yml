@@ -75,12 +75,16 @@ jobs:
           p.write_text(s)
           PY
 
+      - name: Update Capacitor native plugins
+        run: npx cap update android
+
       - name: Install MindReset native Android plugin
         run: |
           mkdir -p android/app/src/main/java/com/mindreset/app/plugins
           cp native/MindResetUsagePlugin.java android/app/src/main/java/com/mindreset/app/plugins/MindResetUsagePlugin.java
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p=Path('android/app/src/main/java/com/mindreset/app/MainActivity.java')
           s=p.read_text()
           if 'MindResetUsagePlugin' not in s:
@@ -90,12 +94,19 @@ jobs:
           p=Path('android/app/src/main/AndroidManifest.xml')
           s=p.read_text()
           if 'android.permission.PACKAGE_USAGE_STATS' not in s:
-              s=s.replace('>\n    <application','>\n    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />\n    <application',1)
+              s=re.sub(r'(<manifest[^>]*>)', r'\1\n    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />', s, count=1)
+          if 'android.permission.PACKAGE_USAGE_STATS' not in s:
+              raise SystemExit('PACKAGE_USAGE_STATS permission was not inserted')
           p.write_text(s)
           PY
 
       - name: Sync Capacitor
         run: npx cap sync android
+
+      - name: Verify Usage Access registration
+        run: |
+          grep -q 'android.permission.PACKAGE_USAGE_STATS' android/app/src/main/AndroidManifest.xml
+          grep -q 'MindResetUsagePlugin' android/app/src/main/java/com/mindreset/app/MainActivity.java
 
       - name: Apply Google Services Gradle plugin
         run: |
