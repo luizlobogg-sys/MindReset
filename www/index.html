@@ -42,7 +42,7 @@ async function signInGoogle(){
     const nativeAuth=window.Capacitor?.Plugins?.FirebaseAuthentication;
     if(!nativeAuth?.signInWithGoogle) throw new Error('Google Authentication plugin is not available');
     toast(t('googleOpening'));
-    const result=await nativeAuth.signInWithGoogle({useCredentialManager:false});
+    const result=await nativeAuth.signInWithGoogle({useCredentialManager:false,skipNativeAuth:true});
     let idToken=result?.credential?.idToken||result?.credential?.accessToken||null;
     if(!idToken && nativeAuth.getIdToken){
       try{const tokenResult=await nativeAuth.getIdToken();idToken=tokenResult?.token||tokenResult?.idToken||null}catch(_){}
