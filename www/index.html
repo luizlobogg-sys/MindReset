@@ -56,9 +56,10 @@ async function signInGoogle(){
       try{result=await nativeAuth.getPendingAuthResult()}catch(_){throw firstError}
     }
     let idToken=result?.credential?.idToken||null;
+    const googleAccessToken=result?.credential?.accessToken||null;
     if(!idToken && nativeAuth.getIdToken){try{idToken=(await nativeAuth.getIdToken({forceRefresh:true}))?.token||null}catch(_){}}
-    if(!idToken)throw new Error('Google login completed, but Firebase ID token was not returned');
-    const firebaseCredential=firebase.auth.GoogleAuthProvider.credential(idToken);
+    if(!idToken && !googleAccessToken)throw new Error('Google login completed, but no Firebase credential was returned');
+    const firebaseCredential=idToken?firebase.auth.GoogleAuthProvider.credential(idToken):firebase.auth.GoogleAuthProvider.credential(null,googleAccessToken);
     const authResult=await cloudAuth.signInWithCredential(firebaseCredential);
     if(!authResult?.user)throw new Error('Firebase did not create the signed-in user');
     cloudUser=authResult.user;
