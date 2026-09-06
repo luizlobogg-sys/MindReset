@@ -36,32 +36,29 @@ async function signInGoogle(){
   const btn=document.getElementById('googleBtn');
   try{
     if(btn)btn.disabled=true;
-    if(!window.firebase) throw new Error('Firebase SDK is not loaded');
-    if(!cloudAuth) initCloud();
-    if(!cloudAuth) throw new Error('Firebase Authentication is not ready');
+    if(!window.firebase)throw new Error('Firebase SDK is not loaded');
+    if(!cloudAuth)initCloud();
+    if(!cloudAuth)throw new Error('Firebase Authentication is not ready');
     const nativeAuth=window.Capacitor?.Plugins?.FirebaseAuthentication;
-    if(!nativeAuth?.signInWithGoogle) throw new Error('Google Authentication plugin is not available');
+    if(!nativeAuth?.signInWithGoogle)throw new Error('Google Authentication plugin is not available');
     toast(t('googleOpening'));
     const result=await nativeAuth.signInWithGoogle({useCredentialManager:false,skipNativeAuth:true});
-    let idToken=result?.credential?.idToken||result?.credential?.accessToken||null;
-    if(!idToken && nativeAuth.getIdToken){
-      try{const tokenResult=await nativeAuth.getIdToken();idToken=tokenResult?.token||tokenResult?.idToken||null}catch(_){}
-    }
-    if(idToken){
-      const credential=firebase.auth.GoogleAuthProvider.credential(idToken);
-      await cloudAuth.signInWithCredential(credential);
-    }else{
-      throw new Error('Google account selected, but no Firebase ID token was returned');
-    }
+    const credential=result?.credential||{};
+    const idToken=credential.idToken||credential.accessToken||null;
+    if(!idToken)throw new Error('Google account selected, but Firebase ID token was not returned');
+    const firebaseCredential=firebase.auth.GoogleAuthProvider.credential(idToken);
+    const authResult=await cloudAuth.signInWithCredential(firebaseCredential);
+    if(!authResult?.user)throw new Error('Firebase did not create the signed-in user');
+    cloudUser=authResult.user;
     renderAccount();
     await loadCloudState();
     state.welcome=false;
     localStorage.setItem('mindreset_v3',JSON.stringify(state));
     document.getElementById('welcome')?.classList.add('hidden');
-    checkUsage();
+    await checkUsage();
   }catch(e){
     console.error('Google sign-in failed',e);
-    toast((e?.message||t('googleFailed')).replace('Firebase: ','').replace(/\\s+/g,' ').trim());
+    toast((e?.message||t('googleFailed')).replace('Firebase: ','').replace(/\s+/g,' ').trim());
   }finally{
     if(btn)btn.disabled=false;
   }
@@ -98,7 +95,7 @@ function setText(id,key){const e=document.getElementById(id);if(e)e.textContent=
   const lang=document.getElementById('langSelect');if(lang)lang.value=state.lang;
   const theme=document.getElementById('themeSelect');if(theme)theme.value=state.theme||'light';
   const strict=document.getElementById('strictToggle');if(strict)strict.checked=!!state.strictFocus;
-  document.getElementById('screenMetric').textContent=state.screenMs?formatMs(state.screenMs):'—';
+  state.screenMs=dayRecord().screenMs||0;state.socialMs=dayRecord().socialMs||0;document.getElementById('screenMetric').textContent=state.screenMs?formatMs(state.screenMs):'—';
   document.getElementById('socialMetric').textContent=state.socialMs?formatMs(state.socialMs):'—';
   document.getElementById('usageMetric').textContent=state.usage?t('usageGranted'):t('notSet');
   document.getElementById('cScreenVal').textContent=state.screenMs?formatMs(state.screenMs):'—';
@@ -118,9 +115,24 @@ const SCREEN_GOAL_MS=3*60*60*1000;
 function dateKey(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
 function dayRecord(key=dateKey()){state.daily=state.daily||{};state.daily[key]=state.daily[key]||{screenMs:0,socialMs:0,focus:0,mood:'',moodReason:''};return state.daily[key]}
 function todayFocus(){return dayRecord().focus||0}
-function updateTodayUsage(){const d=dayRecord();d.screenMs=state.screenMs||0;d.socialMs=state.socialMs||0}
+function updateTodayUsage(){const d=dayRecord();d.screenMs=Math.max(0,Number(state.screenMs)||0);d.socialMs=Math.max(0,Number(state.socialMs)||0)}
+function setUsageForDate(key,screenMs,socialMs){const d=dayRecord(key);d.screenMs=Math.max(0,Number(screenMs)||0);d.socialMs=Math.max(0,Number(socialMs)||0)}
 function score(){let s=72;if(state.screenMs){let h=state.screenMs/3600000;s-=Math.max(0,h-3)*5;s+=Math.min(10,(state.done||[]).length*2);s+=Math.min(8,state.focus||0)}return Math.max(35,Math.min(98,Math.round(s)))}
-function renderChart(){const now=new Date();const labels=state.lang==='pt'?['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']:state.lang==='es'?['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];const items=[];for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);const rec=(state.daily||{})[dateKey(d)]||{};items.push({key:dateKey(d),day:labels[d.getDay()],ms:rec.screenMs||0})}const max=Math.max(SCREEN_GOAL_MS,...items.map(x=>x.ms),1);document.getElementById('homeChart').innerHTML=items.map(x=>`<div class="col"><div class="barcol"><i style="height:${Math.max(4,Math.round((x.ms/max)*100))}%" title="${formatMs(x.ms)}"></i></div>${x.day}</div>`).join('');document.getElementById('weekDetails').innerHTML=items.map(x=>`<div class="day-detail"><b>${x.day}</b><small>${formatMs(x.ms)}</small><small class="${x.ms&&x.ms<=SCREEN_GOAL_MS?'qualify':'not-qualify'}">${x.ms?(x.ms<=SCREEN_GOAL_MS?'✓':'↑'):'—'}</small></div>`).join('')}
+function renderChart(){
+  const now=new Date();
+  const labels=state.lang==='pt'?['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']:state.lang==='es'?['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const items=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(now);d.setHours(12,0,0,0);d.setDate(now.getDate()-i);
+    const key=dateKey(d),rec=(state.daily||{})[key]||{};
+    items.push({key,day:labels[d.getDay()],ms:Math.max(0,Number(rec.screenMs)||0)});
+  }
+  const max=Math.max(SCREEN_GOAL_MS,...items.map(x=>x.ms),1);
+  const chart=document.getElementById('homeChart');
+  if(chart)chart.innerHTML=items.map(x=>`<div class="col"><div class="barcol"><i style="height:${Math.max(4,Math.round((x.ms/max)*100))}%" title="${formatMs(x.ms)}"></i></div>${x.day}</div>`).join('');
+  const details=document.getElementById('weekDetails');
+  if(details)details.innerHTML=items.map(x=>`<div class="day-detail"><b>${x.day}</b><small>${formatMs(x.ms)}</small><small class="${x.ms&&x.ms<=SCREEN_GOAL_MS?'qualify':'not-qualify'}">${x.ms?(x.ms<=SCREEN_GOAL_MS?'✓':'↑'):'—'}</small></div>`).join('');
+}
 function streakStatus(){const today=new Date();let streak=0;for(let i=0;i<365;i++){const d=new Date(today);d.setDate(today.getDate()-i);const r=(state.daily||{})[dateKey(d)];if(r&&r.screenMs>0&&r.screenMs<=SCREEN_GOAL_MS&&(r.focus||0)>0)streak++;else break}let best=0,run=0;for(let i=364;i>=0;i--){const d=new Date(today);d.setDate(today.getDate()-i);const r=(state.daily||{})[dateKey(d)];if(r&&r.screenMs>0&&r.screenMs<=SCREEN_GOAL_MS&&(r.focus||0)>0){run++;best=Math.max(best,run)}else run=0}state.bestStreak=Math.max(state.bestStreak||0,best,streak);return {streak,best:state.bestStreak}}
 function renderStreak(){const x=streakStatus();document.getElementById('streakNumber').textContent=x.streak;document.getElementById('streakDays').textContent=t('streakDays');document.getElementById('streakDesc').textContent=t('streakDesc');document.getElementById('streakBest').textContent=`${t('streakBest')}: ${x.best}`}
 function moodInsightFor(i){const rec=dayRecord();const high=rec.screenMs>SCREEN_GOAL_MS;const focus=rec.focus>0;if(i>=3&&high)return t('moodInsightLow');if(i===2)return t('moodInsightMid');if(i<=1&&focus)return t('moodInsightHigh');return t('moodInsightCompare')}
@@ -139,11 +151,9 @@ async function checkUsage(){
     state.usage=!!r.granted;
     if(state.usage){
       const d=await plugin.getTodayUsage();
-      state.screenMs=Math.max(0,Number(d?.screenTimeMs)||0);
-      state.socialMs=Math.max(0,Number(d?.socialTimeMs)||0);
-      updateTodayUsage();
-    }else{
-      state.screenMs=0;state.socialMs=0;
+      setUsageForDate(dateKey(),d?.screenTimeMs,d?.socialTimeMs);
+      state.screenMs=dayRecord().screenMs;
+      state.socialMs=dayRecord().socialMs;
     }
     localStorage.setItem('mindreset_v3',JSON.stringify(state));
     render();
