@@ -56,17 +56,28 @@ jobs:
           test -s www/ai-chat.js
           test -s www/mindreset-core.js
       - name: Verify MindReset 6.0
+        shell: bash
         run: |
-          test -s www/index.html
-          grep -q 'MindReset 6.0' www/index.html
-          grep -q 'v6.0.0' www/index.html
-          grep -q 'mind-games.js' www/index.html
-          grep -q 'mind-2248.js' www/index.html
-          grep -q 'mindreset-game-v2.js' www/index.html
-          grep -q 'mindreset-games-reference.js' www/index.html
-          grep -q 'ai-fix.js' www/index.html
-          grep -q 'ai-chat.js' www/index.html
-          grep -q 'mindreset-core.js' www/index.html
+          set -e
+          pwd
+          if [ ! -f "www/index.html" ]; then
+            echo "ERRO: www/index.html não existe após o checkout."
+            find . -maxdepth 3 -type f | sort | head -200
+            exit 1
+          fi
+          if [ ! -s "www/index.html" ]; then
+            echo "ERRO: www/index.html está vazio."
+            exit 1
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path("www/index.html").read_text(encoding="utf-8")
+          required=["MindReset 6.0","v6.0.0","mind-games.js","mind-2248.js","mindreset-game-v2.js","mindreset-games-reference.js","ai-fix.js","ai-chat.js","mindreset-core.js"]
+          missing=[x for x in required if x not in s]
+          if missing:
+              raise SystemExit("Itens ausentes em www/index.html: "+", ".join(missing))
+          print("www/index.html OK:", len(s), "bytes") 
+          PY
       - name: Create Android project
         run: npx cap add android
       - name: Set Android SDK and release metadata
