@@ -3,12 +3,12 @@ var previousInteractionId=null;
 function cfg(){return window.MINDRESET_AI_CONFIG&&window.MINDRESET_AI_CONFIG.apiKey}
 function show(msg){var el=document.getElementById('aiAnswer');if(el)el.innerHTML=msg}
 function escapeHtml(s){return String(s).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
-async function callGemini(text,onDelta){
- var key=cfg();if(!key)throw new Error('Chave Gemini não foi incluída neste build');
- var body={model:'gemini-3.8-flash',input:text,stream:true,system_instruction:'Você é o MindReset AI. Responda em português do Brasil com clareza, profundidade e utilidade. Não encurte a resposta artificialmente. Responda com o tamanho necessário para atender completamente ao pedido. Use Markdown simples quando ajudar. Não faça diagnóstico médico; em situações graves, recomende procurar um profissional.'};
+async function callMindReset(text,onDelta,model){
+ var key=cfg();if(!key)throw new Error('Serviço de IA não configurado neste build');
+ var body={model:model||'gemini-3.6-flash',input:text,stream:true,generation_config:{max_output_tokens:8192},system_instruction:'Você é o MindReset AI. Responda em português do Brasil com clareza, profundidade e utilidade. Não encurte a resposta artificialmente. Responda com o tamanho necessário para atender completamente ao pedido. Use Markdown simples quando ajudar. Não faça diagnóstico médico; em situações graves, recomende procurar um profissional.'};
  if(previousInteractionId)body.previous_interaction_id=previousInteractionId;
  var r=await fetch('https://generativelanguage.googleapis.com/v1beta/interactions?alt=sse',{method:'POST',headers:{'Content-Type':'application/json','Accept':'text/event-stream','x-goog-api-key':key},body:JSON.stringify(body)});
- if(!r.ok){var er=await r.text();throw new Error(er||('Gemini HTTP '+r.status))}
+ if(!r.ok){var er=await r.text();throw new Error('Serviço de IA indisponível ('+r.status+')')}
  if(!r.body)throw new Error('Streaming não disponível neste dispositivo');
  var reader=r.body.getReader(),decoder=new TextDecoder(),buffer='',out='';
  function processLine(line){
@@ -30,8 +30,9 @@ async function callGemini(text,onDelta){
    lines.forEach(processLine);
  }
  buffer.split(/\r?\n/).forEach(processLine);
- out=out.trim();if(!out)throw new Error('O Gemini retornou uma resposta vazia');return out;
+ out=out.trim();if(!out)throw new Error('EMPTY_RESPONSE');return out;
 }
-window.askAI=async function(){var input=document.getElementById('aiInput'),q=(input&&input.value||'').trim();if(!q){show('Digite uma pergunta primeiro.');return}show('<span class="ai-loading">Pensando…</span>');try{var ans=await callGemini(q);show(escapeHtml(ans).replace(/\n/g,'<br>'))}catch(e){show('<b>A IA não conseguiu responder agora.</b><br><small>'+escapeHtml(e.message||e)+'</small>')}};
-window.MindResetAI={ask:window.askAI,askText:callGemini,askTextStream:function(text,onDelta){return callGemini(text,onDelta)},test:function(){return callGemini('Responda apenas: MindReset AI funcionando.')},resetConversation:function(){previousInteractionId=null}};
+async function askWithRetry(text,onDelta){var last;for(var attempt=0;attempt<3;attempt++){try{return await callMindReset(text,onDelta,attempt===0?'gemini-3.6-flash':'gemini-3.8-flash')}catch(e){last=e;if(e.message==='EMPTY_RESPONSE'||e.message.indexOf('indisponível')>=0){await new Promise(function(r){setTimeout(r,attempt===0?250:500)});continue}throw e}}throw last||new Error('RETRY_FAILED')}
+window.askAI=async function(){var input=document.getElementById('aiInput'),q=(input&&input.value||'').trim();if(!q){show('Digite uma pergunta primeiro.');return}show('<span class="ai-loading">Pensando…</span>');try{var ans=await askWithRetry(q);show(escapeHtml(ans).replace(/\n/g,'<br>'))}catch(e){show('<b>Não consegui responder agora.</b><br><small>Tente novamente em alguns segundos.</small>')}};
+window.MindResetAI={ask:window.askAI,askText:askWithRetry,askTextStream:function(text,onDelta){return askWithRetry(text,onDelta)},test:function(){return askWithRetry('Responda apenas: MindReset AI funcionando.')},resetConversation:function(){previousInteractionId=null}};
 })();
