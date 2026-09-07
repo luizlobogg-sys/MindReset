@@ -180,14 +180,16 @@ jobs:
           test -s firebase-service-account.json
 
       - name: Deploy MindReset AI backend
-        if: steps.check-secrets.outputs.skip != 'true'
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/firebase-service-account.json
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          printf '%s' "$GEMINI_API_KEY" > gemini-key.txt
-          npx firebase-tools functions:secrets:set GEMINI_API_KEY --data-file gemini-key.txt --project mindreset-efc6d --non-interactive
+          set -e
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > firebase-service-account.json
+          test -s firebase-service-account.json
+          export GOOGLE_APPLICATION_CREDENTIALS="$PWD/firebase-service-account.json"
+          npm --prefix functions install --no-audit --no-fund --no-progress
+          printf '%s' "$GEMINI_API_KEY" > functions/.env
+          printf '\nGEMINI_API_KEY=%s\n' "$GEMINI_API_KEY" >> functions/.env
           npx firebase-tools deploy --only functions:mindResetAI --project mindreset-efc6d --non-interactive
-
-      - name: Cleanup credentials
-        if: ${{ always() }}
-        run: rm -f firebase-service-account.json gemini-key.txt
+          rm -f firebase-service-account.json functions/.env
