@@ -39,6 +39,19 @@ jobs:
           with open('www/ai-config.js','w') as f:
               f.write('window.MINDRESET_AI_CONFIG={apiKey:'+json.dumps(os.environ['GEMINI_API_KEY'])+'};\n')
           PY
+      - name: Wire MindReset runtime modules
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('www/index.html')
+          s=p.read_text()
+          for tag in ['<script src="mind-games.js"></script>','<script src="ai-fix.js"></script>']:
+              if tag not in s:
+                  s=s.replace('</body>',tag+'</body>',1)
+          p.write_text(s)
+          PY
+          test -s www/mind-games.js
+          test -s www/ai-fix.js
       - name: Verify clean MindReset web app
         run: |
           test -s www/index.html
@@ -46,7 +59,8 @@ jobs:
           grep -q '2048' www/index.html
           grep -q 'Sudoku' www/index.html
           grep -q 'Block Blast' www/index.html
-          grep -q 'MindResetUsage' www/index.html
+          grep -q 'mind-games.js' www/index.html
+          grep -q 'ai-fix.js' www/index.html
       - name: Create Android project
         run: npx cap add android
       - name: Set Android SDK and release metadata
