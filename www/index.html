@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f6f7fb"><meta name="description" content="MindReset — foco, bem-estar digital e jogos para o cérebro"><title>MindReset 5.0</title>
+<meta name="theme-color" content="#f6f7fb"><meta name="description" content="MindReset — foco, bem-estar digital e jogos para o cérebro"><title>MindReset 6.0</title>
 <script src="ai-config.js"></script>
 <style>
 :root{--bg:#f5f7fb;--surface:#fff;--surface2:#f0f2f7;--ink:#171a27;--muted:#687084;--line:#dfe3ec;--a:#635bff;--a2:#887dff;--good:#17a673;--bad:#df5368;--gold:#d69b16;--shadow:0 14px 40px rgba(28,34,56,.10)}
@@ -12,12 +12,11 @@ html[data-theme="dark"]{--bg:#080b18;--surface:#11162b;--surface2:#171d36;--ink:
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="brand">MIND<b>RESET</b><span class="version">v5.0.0</span></div><button class="iconbtn" onclick="toggleTheme()" aria-label="Alternar tema">◐</button></header>
+<header class="top"><div class="brand">MIND<b>RESET</b><span class="version">v6.0.0</span></div><button class="iconbtn" onclick="toggleTheme()" aria-label="Alternar tema">◐</button></header>
 <section id="home" class="page active">
-<div class="hero"><div class="eyebrow">MINDRESET 5.0</div><h1>Seu cérebro merece um lugar melhor para estar.</h1><p>Foco, humor, bem-estar digital e uma central de jogos casuais para exercitar memória, lógica e estratégia.</p><div class="row"><button class="btn" onclick="go('games')">Jogar agora</button><button class="btn secondary" onclick="go('focus')">Começar foco</button></div></div>
+<div class="hero"><div class="eyebrow">MINDRESET 6.0</div><h1>Seu cérebro merece um lugar melhor para estar.</h1><p>Foco, humor, bem-estar digital e uma central de jogos casuais para exercitar memória, lógica e estratégia.</p><div class="row"><button class="btn" onclick="go('games')">Jogar agora</button><button class="btn secondary" onclick="go('focus')">Começar foco</button></div></div>
 <div id="usageCard" class="card permission"><div class="eyebrow">BEM-ESTAR DIGITAL</div><h3>Tempo de uso</h3><p id="usageText" class="muted">Verificando o acesso ao uso do dispositivo…</p><div class="row"><button class="btn" onclick="requestUsage()">Permitir acesso</button><button class="btn secondary" onclick="refreshUsage()">Atualizar</button></div></div>
 <div class="grid grid3"><div class="stat"><small>Tempo hoje</small><strong id="homeScreen">—</strong></div><div class="stat"><small>Foco hoje</small><strong id="homeFocus">0 min</strong></div><div class="stat"><small>XP</small><strong id="homeXp">0</strong></div></div>
-<div class="card"><div class="eyebrow">MINDRESET AI</div><h3>Coach rápido</h3><p class="muted">Pergunte algo sobre foco, organização ou bem-estar digital.</p><div class="row"><input id="aiInput" class="input" maxlength="300" placeholder="Ex.: como parar de procrastinar?"><button class="btn" onclick="askAI()">Perguntar</button></div><div id="aiAnswer" class="answer muted"></div></div>
 </section>
 <section id="checkup" class="page"><div class="card"><div class="eyebrow">CHECK-UP</div><h2>Como está seu dia?</h2><p class="muted">Indicadores de hábitos, não diagnóstico médico.</p><div class="grid grid3"><div class="stat"><small>Recovery</small><strong id="recovery">72</strong></div><div class="stat"><small>Humor</small><strong id="checkMood">—</strong></div><div class="stat"><small>Tela</small><strong id="checkScreen">—</strong></div></div></div><div class="card"><h3>Resumo</h3><p id="checkSummary" class="muted">Registre humor e complete uma sessão de foco para receber um resumo.</p></div></section>
 <section id="mood" class="page"><div class="card"><div class="eyebrow">HUMOR</div><h2>Como você está?</h2><div id="moods" class="moods"></div><p id="moodResult" class="muted">Escolha um estado.</p></div><div class="card"><div class="eyebrow">MENTAL WEATHER</div><h3 id="weatherTitle">Clima mental</h3><p id="weatherText" class="muted">Registre seu humor para gerar uma leitura.</p><button class="btn secondary" onclick="mentalWeather()">Atualizar</button></div></section>
