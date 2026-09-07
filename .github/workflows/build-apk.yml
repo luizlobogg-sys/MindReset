@@ -43,7 +43,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           p=Path('www/index.html');s=p.read_text()
-          tags=['<script src="mindreset-game-v2.js"></script>','<script src="mind-games.js"></script>','<script src="ai-fix.js"></script>','<script src="ai-chat.js"></script>','<script src="mindreset-core.js"></script>','<script src="mind-2248.js"></script>']
+          tags=['<script src="mindreset-game-v2.js"></script>','<script src="mindreset-games-reference.js"></script>','<script src="mind-games.js"></script>','<script src="ai-fix.js"></script>','<script src="ai-chat.js"></script>','<script src="mindreset-core.js"></script>','<script src="mind-2248.js"></script>']
           for tag in reversed(tags):
               if tag not in s:s=s.replace('</body>',tag+'</body>',1)
           p.write_text(s)
@@ -51,6 +51,7 @@ jobs:
           test -s www/mind-games.js
           test -s www/mind-2248.js
           test -s www/mindreset-game-v2.js
+          test -s www/mindreset-games-reference.js
           test -s www/ai-fix.js
           test -s www/ai-chat.js
           test -s www/mindreset-core.js
@@ -62,6 +63,7 @@ jobs:
           grep -q 'mind-games.js' www/index.html
           grep -q 'mind-2248.js' www/index.html
           grep -q 'mindreset-game-v2.js' www/index.html
+          grep -q 'mindreset-games-reference.js' www/index.html
           grep -q 'ai-fix.js' www/index.html
           grep -q 'ai-chat.js' www/index.html
           grep -q 'mindreset-core.js' www/index.html
