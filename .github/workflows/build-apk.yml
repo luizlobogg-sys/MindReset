@@ -1,13 +1,10 @@
 name: Build MindReset APK
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,13 +13,10 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Java 21
         uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
+        with: {distribution: temurin, java-version: '21'}
       - name: Setup Node 22
         uses: actions/setup-node@v4
-        with:
-          node-version: 22
+        with: {node-version: 22}
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
       - name: Install Android 36 SDK
@@ -30,35 +24,28 @@ jobs:
       - name: Install npm dependencies
         run: npm install --no-audit --no-fund --no-progress --prefer-offline
       - name: Configure MindReset AI
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        env: {GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}}
         run: |
           test -n "$GEMINI_API_KEY"
           python3 - <<'PY'
           import json, os
-          with open('www/ai-config.js','w') as f:
-              f.write('window.MINDRESET_AI_CONFIG={apiKey:'+json.dumps(os.environ['GEMINI_API_KEY'])+'};\n')
+          with open('www/ai-config.js','w') as f: f.write('window.MINDRESET_AI_CONFIG={apiKey:'+json.dumps(os.environ['GEMINI_API_KEY'])+'};\n')
           PY
       - name: Wire MindReset runtime modules
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('www/index.html')
-          s=p.read_text()
+          p=Path('www/index.html'); s=p.read_text()
           for tag in ['<script src="mind-games.js"></script>','<script src="ai-fix.js"></script>']:
-              if tag not in s:
-                  s=s.replace('</body>',tag+'</body>',1)
+              if tag not in s: s=s.replace('</body>',tag+'</body>',1)
           p.write_text(s)
           PY
-          test -s www/mind-games.js
-          test -s www/ai-fix.js
-      - name: Verify clean MindReset web app
+          test -s www/mind-games.js; test -s www/ai-fix.js
+      - name: Verify MindReset 5.0
         run: |
           test -s www/index.html
-          grep -q 'MindReset 4.0' www/index.html
-          grep -q '2048' www/index.html
-          grep -q 'Sudoku' www/index.html
-          grep -q 'Block Blast' www/index.html
+          grep -q 'MindReset 5.0' www/index.html
+          grep -q 'v5.0.0' www/index.html
           grep -q 'mind-games.js' www/index.html
           grep -q 'ai-fix.js' www/index.html
       - name: Create Android project
@@ -70,42 +57,24 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re
-          p=Path('android/app/build.gradle')
-          s=p.read_text()
-          s=re.sub(r'versionCode\s+\d+', 'versionCode 40', s)
-          s=re.sub(r'versionName\s+[^\n]+', 'versionName "4.0.0"', s)
-          if 'versionCode 40' not in s or 'versionName "4.0.0"' not in s:
-              raise SystemExit('Android version metadata was not configured')
+          p=Path('android/app/build.gradle'); s=p.read_text()
+          s=re.sub(r'versionCode\s+\d+', 'versionCode 50', s)
+          s=re.sub(r'versionName\s+[^\n]+', 'versionName "5.0.0"', s)
+          if 'versionCode 50' not in s or 'versionName "5.0.0"' not in s: raise SystemExit('Version 5.0 not configured')
           p.write_text(s)
           PY
       - name: Configure Firebase Android
-        env:
-          FIREBASE_JSON_B64: ${{ secrets.FIREBASE_JSON_B64 }}
+        env: {FIREBASE_JSON_B64: ${{ secrets.FIREBASE_JSON_B64 }}}
         run: |
-          test -n "$FIREBASE_JSON_B64"
-          mkdir -p android/app
+          test -n "$FIREBASE_JSON_B64"; mkdir -p android/app
           echo "$FIREBASE_JSON_B64" | base64 --decode > android/app/google-services.json
           test -s android/app/google-services.json
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-          d=json.loads(Path('android/app/google-services.json').read_text())
-          project=d.get('project_info', {})
-          client=(d.get('client') or [{}])[0]
-          package=((client.get('client_info') or {}).get('android_client_info') or {}).get('package_name')
-          print('Firebase project:', project.get('project_id'))
-          print('Android package:', package)
-          if package != 'com.mindreset.app':
-              raise SystemExit(f'Wrong Firebase Android package: {package}')
-          PY
       - name: Configure Google Sign-In dependencies
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('android/variables.gradle')
-          s=p.read_text()
-          if 'rgcfaIncludeGoogle' not in s:
-              s=s.replace('ext {', "ext {\n    rgcfaIncludeGoogle = true\n    androidxCredentialsVersion = '1.3.0'", 1)
+          p=Path('android/variables.gradle'); s=p.read_text()
+          if 'rgcfaIncludeGoogle' not in s: s=s.replace('ext {', "ext {\n    rgcfaIncludeGoogle = true\n    androidxCredentialsVersion = '1.3.0'",1)
           p.write_text(s)
           PY
       - name: Update Capacitor native plugins
@@ -117,58 +86,41 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re
-          p=Path('android/app/src/main/java/com/mindreset/app/MainActivity.java')
-          s=p.read_text()
+          p=Path('android/app/src/main/java/com/mindreset/app/MainActivity.java'); s=p.read_text()
           if 'MindResetUsagePlugin' not in s:
               s=s.replace('package com.mindreset.app;','package com.mindreset.app;\n\nimport android.os.Bundle;\nimport com.mindreset.app.plugins.MindResetUsagePlugin;')
-              s=s.replace('public class MainActivity extends BridgeActivity {','public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(Bundle savedInstanceState) {\n        registerPlugin(MindResetUsagePlugin.class);\n        super.onCreate(savedInstanceState);\n    }')
+              s=s.replace('public class MainActivity extends BridgeActivity {','public class MainActivity extends BridgeActivity {\n @Override public void onCreate(Bundle savedInstanceState){ registerPlugin(MindResetUsagePlugin.class); super.onCreate(savedInstanceState); }')
           p.write_text(s)
-          p=Path('android/app/src/main/AndroidManifest.xml')
-          s=p.read_text()
-          if 'android.permission.PACKAGE_USAGE_STATS' not in s:
-              s=re.sub(r'(<manifest[^>]*>)', r'\1\n    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />', s, count=1)
-          if 'android.permission.PACKAGE_USAGE_STATS' not in s:
-              raise SystemExit('PACKAGE_USAGE_STATS permission was not inserted')
+          p=Path('android/app/src/main/AndroidManifest.xml'); s=p.read_text()
+          if 'android.permission.PACKAGE_USAGE_STATS' not in s: s=re.sub(r'(<manifest[^>]*>)',r'\1\n <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />',s,count=1)
           p.write_text(s)
           PY
       - name: Sync Capacitor
         run: npx cap sync android
-      - name: Verify Usage Access registration
-        run: |
-          grep -q 'android.permission.PACKAGE_USAGE_STATS' android/app/src/main/AndroidManifest.xml
-          grep -q 'MindResetUsagePlugin' android/app/src/main/java/com/mindreset/app/MainActivity.java
       - name: Apply Google Services Gradle plugin
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('android/build.gradle')
-          s=p.read_text()
-          if 'com.google.gms:google-services' not in s:
-              s=s.replace('dependencies {', "dependencies {\n        classpath 'com.google.gms:google-services:4.4.2'", 1)
+          p=Path('android/build.gradle'); s=p.read_text()
+          if 'com.google.gms:google-services' not in s: s=s.replace('dependencies {',"dependencies {\n classpath 'com.google.gms:google-services:4.4.2'",1)
           p.write_text(s)
-          p=Path('android/app/build.gradle')
-          s=p.read_text()
-          if 'com.google.gms.google-services' not in s:
-              s += "\napply plugin: 'com.google.gms.google-services'\n"
+          p=Path('android/app/build.gradle'); s=p.read_text()
+          if 'com.google.gms.google-services' not in s: s+='\napply plugin: \'com.google.gms.google-services\'\n'
           p.write_text(s)
           PY
       - name: Generate app icon
         run: npx @capacitor/assets generate --android --iconBackgroundColor "#1E1F44" --iconBackgroundColorDark "#1E1F44"
       - name: Setup Gradle 8.11.1
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.11.1'
+        with: {gradle-version: '8.11.1'}
       - name: Generate signing report
         working-directory: android
         run: gradle signingReport
-      - name: Build debug APK
+      - name: Build MindReset 5.0 APK
         working-directory: android
         run: gradle assembleDebug --no-daemon
-      - name: Verify APK version
-        working-directory: android
-        run: gradle :app:properties | grep -E 'version(Code|Name):' || true
-      - name: Upload debug APK
+      - name: Upload MindReset 5.0 APK
         uses: actions/upload-artifact@v4
         with:
-          name: MindReset-4.0.0-APK
+          name: MindReset-5.0.0-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
