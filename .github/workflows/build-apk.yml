@@ -33,6 +33,17 @@ jobs:
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
       - name: Install npm dependencies
+
+      - name: Configure MindReset AI
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          test -n "$GEMINI_API_KEY"
+          python3 - <<'PY'
+          import json, os
+          with open('www/ai-config.js','w') as f:
+              f.write('window.MINDRESET_AI_CONFIG={apiKey:'+json.dumps(os.environ['GEMINI_API_KEY'])+'};\\n')
+          PY
         run: npm install --no-audit --no-fund --no-progress --prefer-offline
 
       - name: Create Android project
@@ -141,55 +152,3 @@ jobs:
           name: MindReset-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
-  deploy-ai:
-    runs-on: ubuntu-latest
-    needs: build
-    env:
-      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-    steps:
-      - name: Check AI deployment secrets
-        id: check-secrets
-        shell: bash
-        run: |
-          if [[ -z "$FIREBASE_SERVICE_ACCOUNT" || -z "$GEMINI_API_KEY" ]]; then
-            echo "AI deployment secrets are not configured; skipping deployment."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Checkout
-        if: steps.check-secrets.outputs.skip != 'true'
-        uses: actions/checkout@v4
-
-      - name: Setup Node 20
-        if: steps.check-secrets.outputs.skip != 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Firebase Functions dependencies
-        if: steps.check-secrets.outputs.skip != 'true'
-        run: npm --prefix functions install --no-audit --no-fund --no-progress
-
-      - name: Configure Firebase service account
-        if: steps.check-secrets.outputs.skip != 'true'
-        run: |
-          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > firebase-service-account.json
-          test -s firebase-service-account.json
-
-      - name: Deploy MindReset AI backend
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          set -e
-          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > firebase-service-account.json
-          test -s firebase-service-account.json
-          export GOOGLE_APPLICATION_CREDENTIALS="$PWD/firebase-service-account.json"
-          npm --prefix functions install --no-audit --no-fund --no-progress
-          printf '%s' "$GEMINI_API_KEY" > functions/.env
-          printf '\nGEMINI_API_KEY=%s\n' "$GEMINI_API_KEY" >> functions/.env
-          npx firebase-tools deploy --only functions:mindResetAI --project mindreset-efc6d --non-interactive
-          rm -f firebase-service-account.json functions/.env
