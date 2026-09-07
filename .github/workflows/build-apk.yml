@@ -55,11 +55,11 @@ jobs:
           test -s www/ai-fix.js
           test -s www/ai-chat.js
           test -s www/mindreset-core.js
-      - name: Verify MindReset 5.0
+      - name: Verify MindReset 6.0
         run: |
           test -s www/index.html
-          grep -q 'MindReset 5.0' www/index.html
-          grep -q 'v5.0.0' www/index.html
+          grep -q 'MindReset 6.0' www/index.html
+          grep -q 'v6.0.0' www/index.html
           grep -q 'mind-games.js' www/index.html
           grep -q 'mind-2248.js' www/index.html
           grep -q 'mindreset-game-v2.js' www/index.html
@@ -77,8 +77,8 @@ jobs:
           from pathlib import Path
           import re
           p=Path('android/app/build.gradle');s=p.read_text()
-          s=re.sub(r'versionCode\s+\d+','versionCode 50',s)
-          s=re.sub(r'versionName\s+[^\n]+','versionName "5.0.0"',s)
+          s=re.sub(r'versionCode\s+\d+','versionCode 60',s)
+          s=re.sub(r'versionName\s+[^\n]+','versionName "6.0.0"',s)
           p.write_text(s)
           PY
       - name: Configure Firebase Android
@@ -137,11 +137,11 @@ jobs:
       - name: Generate signing report
         working-directory: android
         run: gradle signingReport --no-daemon --stacktrace
-      - name: Build MindReset 5.0 APK
+      - name: Build MindReset 6.0 APK
         working-directory: android
         run: gradle assembleDebug --no-daemon --stacktrace
-      - name: Upload MindReset 5.0 APK
+      - name: Upload MindReset 6.0 APK
         uses: actions/upload-artifact@v4
         with:
-          name: MindReset-5.0.0-APK
+          name: MindReset-6.0.0-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
