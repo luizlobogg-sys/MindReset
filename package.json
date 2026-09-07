@@ -1,6 +1,6 @@
 {
   "name": "mindreset",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "private": true,
   "scripts": {
     "sync": "npx cap sync android",
