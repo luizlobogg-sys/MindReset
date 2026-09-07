@@ -33,5 +33,5 @@ async function callGemini(text,onDelta){
  out=out.trim();if(!out)throw new Error('O Gemini retornou uma resposta vazia');return out;
 }
 window.askAI=async function(){var input=document.getElementById('aiInput'),q=(input&&input.value||'').trim();if(!q){show('Digite uma pergunta primeiro.');return}show('<span class="ai-loading">Pensando…</span>');try{var ans=await callGemini(q);show(escapeHtml(ans).replace(/\n/g,'<br>'))}catch(e){show('<b>A IA não conseguiu responder agora.</b><br><small>'+escapeHtml(e.message||e)+'</small>')}};
-window.MindResetAI={ask:window.askAI,askText:callGemini,test:function(){return callGemini('Responda apenas: MindReset AI funcionando.')},resetConversation:function(){previousInteractionId=null}};
+window.MindResetAI={ask:window.askAI,askText:callGemini,askTextStream:function(text,onDelta){return callGemini(text,onDelta)},test:function(){return callGemini('Responda apenas: MindReset AI funcionando.')},resetConversation:function(){previousInteractionId=null}};
 })();
