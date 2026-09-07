@@ -33,6 +33,7 @@ jobs:
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
       - name: Install npm dependencies
+        run: npm install --no-audit --no-fund --no-progress --prefer-offline
 
       - name: Configure MindReset AI
         env:
@@ -42,9 +43,8 @@ jobs:
           python3 - <<'PY'
           import json, os
           with open('www/ai-config.js','w') as f:
-              f.write('window.MINDRESET_AI_CONFIG={apiKey:'+json.dumps(os.environ['GEMINI_API_KEY'])+'};\\n')
+              f.write('window.MINDRESET_AI_CONFIG={apiKey:'+json.dumps(os.environ['GEMINI_API_KEY'])+'};\n')
           PY
-        run: npm install --no-audit --no-fund --no-progress --prefer-offline
 
       - name: Create Android project
         run: npx cap add android
@@ -60,7 +60,7 @@ jobs:
         run: |
           test -n "$FIREBASE_JSON_B64"
           mkdir -p android/app
-          printf '%s' "$FIREBASE_JSON_B64" | base64 --decode > android/app/google-services.json
+          echo "$FIREBASE_JSON_B64" | base64 --decode > android/app/google-services.json
           test -s android/app/google-services.json
           python3 - <<'PY'
           import json
@@ -151,4 +151,3 @@ jobs:
         with:
           name: MindReset-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
-
