@@ -52,13 +52,10 @@ jobs:
           from pathlib import Path
           p=Path('www/index.html')
           s=p.read_text()
-          css='''<style id="mindreset-upgrade-css">
-          #mrUpgrade{display:grid;gap:18px;margin-top:18px}.mr-up-card{margin-top:0}.mr-today-grid{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}.mr-energy{height:13px;background:#eceef5;border-radius:99px;overflow:hidden;margin:12px 0}.mr-energy i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:99px;transition:width .5s}.mr-obstacles,.mr-personas,.mr-sounds{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.mr-up-card textarea{font:inherit}.mr-up-card .mood-chip{color:var(--ink)}[data-theme="dark"] .mr-energy{background:#2b2e49}@media(max-width:650px){.mr-today-grid{grid-template-columns:1fr}.mr-today-grid .btn{width:100%}}
-          </style>'''
-          tags=['<script src="mindreset-upgrade.js"></script>','<script src="mind-games.js"></script>']
+          css='''<style id="mindreset-upgrade-css">#mrUpgrade{display:grid;gap:18px;margin-top:18px}.mr-up-card{margin-top:0}.mr-today-grid{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}.mr-energy{height:13px;background:#eceef5;border-radius:99px;overflow:hidden;margin:12px 0}.mr-energy i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:99px;transition:width .5s}.mr-obstacles,.mr-personas,.mr-sounds{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.mr-up-card textarea{font:inherit}.mr-up-card .mood-chip{color:var(--ink)}[data-theme="dark"] .mr-energy{background:#2b2e49}@media(max-width:650px){.mr-today-grid{grid-template-columns:1fr}.mr-today-grid .btn{width:100%}}</style>'''
           if 'id="mindreset-upgrade-css"' not in s:
               s=s.replace('</head>',css+'</head>',1)
-          for tag in tags:
+          for tag in ['<script src="mindreset-upgrade.js"></script>','<script src="mind-games.js"></script>','<script src="mindreset-design.js"></script>']:
               if tag not in s:
                   s=s.replace('</body>',tag+'</body>',1)
           p.write_text(s)
@@ -67,10 +64,21 @@ jobs:
       - name: Create Android project
         run: npx cap add android
 
-      - name: Set Android SDK versions
+      - name: Set Android SDK and release metadata
         run: |
           sed -i 's/compileSdkVersion = [0-9][0-9]*/compileSdkVersion = 36/' android/variables.gradle
           sed -i 's/targetSdkVersion = [0-9][0-9]*/targetSdkVersion = 36/' android/variables.gradle
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('android/app/build.gradle')
+          s=p.read_text()
+          s=re.sub(r'versionCode\s+\d+', 'versionCode 40', s)
+          s=re.sub(r'versionName\s+[^\n]+', 'versionName "4.0.0"', s)
+          if 'versionCode 40' not in s or 'versionName "4.0.0"' not in s:
+              raise SystemExit('Android version metadata was not configured')
+          p.write_text(s)
+          PY
 
       - name: Configure Firebase Android
         env:
@@ -164,8 +172,13 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug
 
+      - name: Verify APK version
+        working-directory: android
+        run: |
+          ./gradlew :app:properties | grep -E 'version(Code|Name):' || true
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: MindReset-APK
+          name: MindReset-4.0.0-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
