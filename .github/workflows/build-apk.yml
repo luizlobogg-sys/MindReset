@@ -37,35 +37,30 @@ jobs:
           Path('www/ai-config.js').write_text('window.MINDRESET_AI_CONFIG={apiKey:'+json.dumps(os.environ['GEMINI_API_KEY'])+'};\n')
           PY
           test -s www/ai-config.js
-      - name: Wire only active MindReset runtime modules
+      - name: Wire the intended MindReset game runtime
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
           p=Path('www/index.html');s=p.read_text()
-          old=['mindreset-game-v2.js','mindreset-games-reference.js','mind-2248.js']
-          for name in old:
+          for name in ['mind-games.js','mindreset-game-v2.js','mindreset-games-reference.js','mind-2248.js','ai-fix.js','ai-chat.js','mindreset-core.js']:
               s=re.sub(r'\s*<script[^>]+src=["\']'+re.escape(name)+r'["\'][^>]*></script>','',s)
-          for name in ['mind-games.js','ai-fix.js','ai-chat.js','mindreset-core.js']:
-              s=re.sub(r'\s*<script[^>]+src=["\']'+re.escape(name)+r'["\'][^>]*></script>','',s)
-          tags=''.join('<script src="'+x+'"></script>' for x in ['mind-games.js','ai-fix.js','ai-chat.js','mindreset-core.js'])
+          tags=''.join('<script src="'+x+'"></script>' for x in ['mindreset-games-reference.js','ai-fix.js','ai-chat.js','mindreset-core.js'])
           s=s.replace('</body>',tags+'</body>',1)
           s=s.replace('MindReset 6.0','MindReset 6.0.1').replace('v6.0.0','v6.0.1')
           p.write_text(s)
           PY
-          for f in www/mind-games.js www/ai-fix.js www/ai-chat.js www/mindreset-core.js; do test -s "$f"; done
-      - name: Verify active runtime
+          for f in www/mindreset-games-reference.js www/ai-fix.js www/ai-chat.js www/mindreset-core.js; do test -s "$f"; done
+      - name: Verify intended runtime
         run: |
           python3 - <<'PY'
           from pathlib import Path
           s=Path('www/index.html').read_text()
-          required=['MindReset 6.0.1','v6.0.1','mind-games.js','ai-fix.js','ai-chat.js','mindreset-core.js']
-          forbidden=['mind-2248.js','mindreset-game-v2.js','mindreset-games-reference.js']
-          for x in required:
-              assert x in s, x
-          for x in forbidden:
-              assert x not in s, x
-          assert s.count('mind-games.js')==1
+          required=['MindReset 6.0.1','v6.0.1','mindreset-games-reference.js','ai-fix.js','ai-chat.js','mindreset-core.js']
+          forbidden=['mind-games.js','mind-2248.js','mindreset-game-v2.js']
+          for x in required: assert x in s, x
+          for x in forbidden: assert x not in s, x
+          assert s.count('mindreset-games-reference.js')==1
           print('Runtime OK')
           PY
       - name: Create Android project
