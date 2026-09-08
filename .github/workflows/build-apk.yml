@@ -34,49 +34,39 @@ jobs:
           python3 - <<'PY'
           import json, os
           from pathlib import Path
-          p=Path('www/ai-config.js')
-          p.write_text('window.MINDRESET_AI_CONFIG={apiKey:'+json.dumps(os.environ['GEMINI_API_KEY'])+'};\n')
+          Path('www/ai-config.js').write_text('window.MINDRESET_AI_CONFIG={apiKey:'+json.dumps(os.environ['GEMINI_API_KEY'])+'};\n')
           PY
           test -s www/ai-config.js
-      - name: Wire MindReset runtime modules
+      - name: Wire only active MindReset runtime modules
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p=Path('www/index.html');s=p.read_text()
-          tags=['<script src="mindreset-game-v2.js"></script>','<script src="mindreset-games-reference.js"></script>','<script src="mind-games.js"></script>','<script src="ai-fix.js"></script>','<script src="ai-chat.js"></script>','<script src="mindreset-core.js"></script>','<script src="mind-2248.js"></script>']
-          for tag in reversed(tags):
-              if tag not in s:s=s.replace('</body>',tag+'</body>',1)
+          old=['mindreset-game-v2.js','mindreset-games-reference.js','mind-2248.js']
+          for name in old:
+              s=re.sub(r'\s*<script[^>]+src=["\']'+re.escape(name)+r'["\'][^>]*></script>','',s)
+          for name in ['mind-games.js','ai-fix.js','ai-chat.js','mindreset-core.js']:
+              s=re.sub(r'\s*<script[^>]+src=["\']'+re.escape(name)+r'["\'][^>]*></script>','',s)
+          tags=''.join('<script src="'+x+'"></script>' for x in ['mind-games.js','ai-fix.js','ai-chat.js','mindreset-core.js'])
+          s=s.replace('</body>',tags+'</body>',1)
+          s=s.replace('MindReset 6.0','MindReset 6.0.1').replace('v6.0.0','v6.0.1')
           p.write_text(s)
           PY
-          test -s www/mind-games.js
-          test -s www/mind-2248.js
-          test -s www/mindreset-game-v2.js
-          test -s www/mindreset-games-reference.js
-          test -s www/ai-fix.js
-          test -s www/ai-chat.js
-          test -s www/mindreset-core.js
-      - name: Verify MindReset 6.0
-        shell: bash
+          for f in www/mind-games.js www/ai-fix.js www/ai-chat.js www/mindreset-core.js; do test -s "$f"; done
+      - name: Verify active runtime
         run: |
-          set -e
-          pwd
-          if [ ! -f "www/index.html" ]; then
-            echo "ERRO: www/index.html não existe após o checkout."
-            find . -maxdepth 3 -type f | sort | head -200
-            exit 1
-          fi
-          if [ ! -s "www/index.html" ]; then
-            echo "ERRO: www/index.html está vazio."
-            exit 1
-          fi
           python3 - <<'PY'
           from pathlib import Path
-          s=Path("www/index.html").read_text(encoding="utf-8")
-          required=["MindReset 6.0","v6.0.0","mind-games.js","mind-2248.js","mindreset-game-v2.js","mindreset-games-reference.js","ai-fix.js","ai-chat.js","mindreset-core.js"]
-          missing=[x for x in required if x not in s]
-          if missing:
-              raise SystemExit("Itens ausentes em www/index.html: "+", ".join(missing))
-          print("www/index.html OK:", len(s), "bytes") 
+          s=Path('www/index.html').read_text()
+          required=['MindReset 6.0.1','v6.0.1','mind-games.js','ai-fix.js','ai-chat.js','mindreset-core.js']
+          forbidden=['mind-2248.js','mindreset-game-v2.js','mindreset-games-reference.js']
+          for x in required:
+              assert x in s, x
+          for x in forbidden:
+              assert x not in s, x
+          assert s.count('mind-games.js')==1
+          print('Runtime OK')
           PY
       - name: Create Android project
         run: npx cap add android
@@ -88,8 +78,8 @@ jobs:
           from pathlib import Path
           import re
           p=Path('android/app/build.gradle');s=p.read_text()
-          s=re.sub(r'versionCode\s+\d+','versionCode 60',s)
-          s=re.sub(r'versionName\s+[^\n]+','versionName "6.0.0"',s)
+          s=re.sub(r'versionCode\s+\d+','versionCode 61',s)
+          s=re.sub(r'versionName\s+[^\n]+','versionName "6.0.1"',s)
           p.write_text(s)
           PY
       - name: Configure Firebase Android
@@ -148,11 +138,11 @@ jobs:
       - name: Generate signing report
         working-directory: android
         run: gradle signingReport --no-daemon --stacktrace
-      - name: Build MindReset 6.0 APK
+      - name: Build MindReset 6.0.1 APK
         working-directory: android
         run: gradle assembleDebug --no-daemon --stacktrace
-      - name: Upload MindReset 6.0 APK
+      - name: Upload MindReset 6.0.1 APK
         uses: actions/upload-artifact@v4
         with:
-          name: MindReset-6.0.0-APK
+          name: MindReset-6.0.1-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
